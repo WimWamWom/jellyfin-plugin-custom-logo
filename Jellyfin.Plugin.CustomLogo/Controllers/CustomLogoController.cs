@@ -106,7 +106,7 @@ public class CustomLogoController : ControllerBase
     /// </summary>
     /// <param name="slot">The image slot to read.</param>
     /// <returns>The stored image.</returns>
-    /// <response code="200">The stored image.</response>
+    /// <response code="200">The image file, with its stored content type.</response>
     /// <response code="404">No image has been uploaded for this slot.</response>
     [HttpGet("Image/{slot}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
