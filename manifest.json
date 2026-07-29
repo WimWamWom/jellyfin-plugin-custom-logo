@@ -8,6 +8,14 @@
     "category": "General",
     "versions": [
       {
+        "version": "1.0.0.1",
+        "changelog": "Release 1.0.0.1.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/WimWamWom/jellyfin-plugin-custom-logo/releases/download/v1.0.0.1/custom-logo_1.0.0.1.zip",
+        "checksum": "e1daf15391dfea8c146025e40826c992",
+        "timestamp": "2026-07-29T18:07:25Z"
+      },
+      {
         "version": "1.0.0.0",
         "changelog": "Release 1.0.0.0.",
         "targetAbi": "10.11.0.0",
