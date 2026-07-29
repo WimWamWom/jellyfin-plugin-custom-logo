@@ -11,6 +11,7 @@ description: >
   text. The branding is injected server-side into the served index.html, so the custom logo is
   present on the very first paint and no default logo flashes before it.
 category: "General"
+imageUrl: "https://raw.githubusercontent.com/WimWamWom/jellyfin-plugin-custom-logo/main/static/logo.png"
 artifacts:
   - "Jellyfin.Plugin.CustomLogo.dll"
 changelog: "Initial release."

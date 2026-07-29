@@ -64,16 +64,19 @@ internal static class CustomCssBuilder
             sb.Append(".pageTitleWithDefaultLogo{");
             if (hasLogo)
             {
+                // Only the image itself is forced. Themes are loaded after this block and set
+                // background-image on exactly this selector, so it has to win; everything else is
+                // left overridable by the admin's own custom CSS, which loads later still.
                 sb.Append("background-image:var(--customlogo-image)!important;")
-                  .Append("background-size:auto var(--customlogo-size)!important;")
-                  .Append("background-position:left center!important;")
-                  .Append("background-repeat:no-repeat!important;");
+                  .Append("background-size:auto var(--customlogo-size);")
+                  .Append("background-position:left center;")
+                  .Append("background-repeat:no-repeat;");
             }
 
-            sb.Append("display:flex!important;")
+            sb.Append("display:flex;")
               .Append("align-items:center;")
-              .Append("width:auto!important;")
-              .Append("height:var(--customlogo-size)!important;")
+              .Append("width:auto;")
+              .Append("height:var(--customlogo-size);")
               .Append("overflow:visible;");
 
             // Reserve space for the logo so the ::after text sits next to it rather than on top of it.

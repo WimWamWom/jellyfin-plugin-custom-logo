@@ -71,6 +71,12 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
             new PluginPageInfo
             {
                 Name = Name,
+                DisplayName = Name,
+
+                // Puts the plugin into the dashboard's left-hand navigation alongside the other
+                // plugins, instead of only being reachable through the plugin list.
+                EnableInMainMenu = true,
+                MenuIcon = "image",
                 EmbeddedResourcePath = string.Format(
                     CultureInfo.InvariantCulture,
                     "{0}.Configuration.configPage.html",

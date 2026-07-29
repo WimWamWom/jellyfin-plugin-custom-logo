@@ -4,52 +4,65 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using Jellyfin.Plugin.CustomLogo.Configuration;
-using MediaBrowser.Controller.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.CustomLogo.Injection;
 
 /// <summary>
-/// Produces the branded version of the web client's <c>index.html</c>.
+/// Applies the configured branding to the web client's <c>index.html</c>.
 /// </summary>
 /// <remarks>
-/// The result is cached and only rebuilt when either the on-disk <c>index.html</c> or the plugin
-/// configuration changes, so a page load costs one dictionary-sized string comparison rather than a
-/// file read plus a set of regular expression passes.
+/// <para>
+/// This is a pure transformation over HTML that has already been produced by the rest of the
+/// pipeline. It deliberately does not read <c>index.html</c> from disk: other plugins (notably
+/// File Transformation, which the Media Bar and Home Screen Sections plugins build on) replace the
+/// static file provider so that the file is rewritten as it is read. Reading from disk here would
+/// silently discard their work.
+/// </para>
+/// <para>
+/// The last result is cached, so repeated page loads with unchanged input and configuration cost
+/// one string comparison instead of a set of regular expression passes.
+/// </para>
 /// </remarks>
 internal sealed partial class IndexHtmlTransformer
 {
     private const string StyleElementId = "jellyfin-custom-logo";
 
-    private readonly IServerConfigurationManager _serverConfigurationManager;
     private readonly ILogger<IndexHtmlTransformer> _logger;
     private readonly object _syncRoot = new();
 
-    private string? _cachedKey;
-    private string? _cachedHtml;
+    private string? _cachedConfigKey;
+    private string? _cachedInput;
+    private string? _cachedOutput;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="IndexHtmlTransformer"/> class.
     /// </summary>
-    /// <param name="serverConfigurationManager">The server configuration manager.</param>
     /// <param name="logger">The logger.</param>
-    public IndexHtmlTransformer(
-        IServerConfigurationManager serverConfigurationManager,
-        ILogger<IndexHtmlTransformer> logger)
+    public IndexHtmlTransformer(ILogger<IndexHtmlTransformer> logger)
     {
-        _serverConfigurationManager = serverConfigurationManager;
         _logger = logger;
     }
 
     /// <summary>
-    /// Gets the branded <c>index.html</c>.
+    /// Gets a value indicating whether the plugin currently has anything to inject.
     /// </summary>
     /// <returns>
-    /// The transformed HTML, or <c>null</c> when the plugin is disabled, nothing is configured, or
-    /// the file could not be read. In every <c>null</c> case the caller must fall through to the
-    /// server's normal static file handling.
+    /// <c>false</c> when the plugin is unconfigured or switched off, in which case the caller
+    /// should not bother buffering the response at all.
     /// </returns>
-    public string? GetTransformedHtml()
+    public bool IsEnabled()
+    {
+        var plugin = Plugin.Instance;
+        return plugin is not null && plugin.Configuration.Mode != LogoReplacementMode.None;
+    }
+
+    /// <summary>
+    /// Applies the branding to the supplied markup.
+    /// </summary>
+    /// <param name="html">The <c>index.html</c> produced by the rest of the pipeline.</param>
+    /// <returns>The branded markup, or <c>null</c> when there was nothing to change.</returns>
+    public string? Transform(string html)
     {
         var plugin = Plugin.Instance;
         if (plugin is null)
@@ -63,38 +76,28 @@ internal sealed partial class IndexHtmlTransformer
             return null;
         }
 
-        var webPath = _serverConfigurationManager.ApplicationPaths.WebPath;
-        if (string.IsNullOrEmpty(webPath))
-        {
-            return null;
-        }
-
-        var indexPath = Path.Combine(webPath, "index.html");
-        var indexInfo = new FileInfo(indexPath);
-        if (!indexInfo.Exists)
-        {
-            return null;
-        }
-
-        var key = BuildCacheKey(config, plugin, indexInfo);
+        var configKey = BuildConfigKey(config, plugin);
 
         lock (_syncRoot)
         {
-            if (string.Equals(_cachedKey, key, StringComparison.Ordinal))
+            if (string.Equals(_cachedConfigKey, configKey, StringComparison.Ordinal)
+                && _cachedInput is not null
+                && string.Equals(_cachedInput, html, StringComparison.Ordinal))
             {
-                return _cachedHtml;
+                return _cachedOutput;
             }
         }
 
-        var html = Transform(indexPath, config, plugin);
+        var output = Build(html, config, plugin);
 
         lock (_syncRoot)
         {
-            _cachedKey = key;
-            _cachedHtml = html;
+            _cachedConfigKey = configKey;
+            _cachedInput = html;
+            _cachedOutput = output;
         }
 
-        return html;
+        return output;
     }
 
     [GeneratedRegex(
@@ -154,19 +157,16 @@ internal sealed partial class IndexHtmlTransformer
     }
 
     /// <summary>
-    /// Builds a key that changes whenever anything the output depends on changes.
+    /// Builds a key that changes whenever the configuration or an uploaded image changes.
     /// </summary>
     /// <param name="config">The plugin configuration.</param>
     /// <param name="plugin">The plugin instance.</param>
-    /// <param name="indexInfo">The on-disk index file.</param>
     /// <returns>The cache key.</returns>
-    private static string BuildCacheKey(PluginConfiguration config, Plugin plugin, FileInfo indexInfo)
+    private static string BuildConfigKey(PluginConfiguration config, Plugin plugin)
     {
         var sb = new StringBuilder(256);
 
-        sb.Append(indexInfo.LastWriteTimeUtc.Ticks.ToString(CultureInfo.InvariantCulture)).Append('|')
-          .Append(indexInfo.Length.ToString(CultureInfo.InvariantCulture)).Append('|')
-          .Append(config.Mode.ToString()).Append('|')
+        sb.Append(config.Mode.ToString()).Append('|')
           .Append(config.ReplaceSplashLogo).Append(config.ReplaceHeaderLogo)
           .Append(config.ReplaceDrawerLogo).Append(config.ReplaceFavicon)
           .Append(config.ReplaceBrowserTitle).Append('|')
@@ -203,24 +203,8 @@ internal sealed partial class IndexHtmlTransformer
             : "none";
     }
 
-    private string? Transform(string indexPath, PluginConfiguration config, Plugin plugin)
+    private string? Build(string html, PluginConfiguration config, Plugin plugin)
     {
-        string html;
-        try
-        {
-            html = File.ReadAllText(indexPath);
-        }
-        catch (IOException ex)
-        {
-            _logger.LogError(ex, "Failed to read the web client index at {Path}", indexPath);
-            return null;
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            _logger.LogError(ex, "Not permitted to read the web client index at {Path}", indexPath);
-            return null;
-        }
-
         var logoUrl = BrandingAssetResolver.ResolveLogo(config, plugin, _logger);
         var changed = false;
 
@@ -229,7 +213,7 @@ internal sealed partial class IndexHtmlTransformer
         {
             // Injected as the last thing in <head>, so it is parsed before the body is rendered and
             // before the webpack bundle's stylesheet is fetched. The rules use !important, which
-            // beats the later-loading bundle rules of equal specificity.
+            // beats the later-loading bundle and theme rules of equal specificity.
             var index = html.LastIndexOf("</head>", StringComparison.OrdinalIgnoreCase);
             if (index >= 0)
             {
@@ -240,7 +224,7 @@ internal sealed partial class IndexHtmlTransformer
             }
             else
             {
-                _logger.LogWarning("No closing head tag found in {Path}; skipping style injection", indexPath);
+                _logger.LogWarning("No closing head tag found in the served index; skipping style injection");
             }
         }
 
