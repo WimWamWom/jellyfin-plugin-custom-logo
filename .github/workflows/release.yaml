@@ -1,0 +1,153 @@
+name: 🚀 Release Plugin
+
+# Publishing flow:
+#   1. push a tag such as v1.0.0.0
+#   2. this workflow builds the plugin, zips it, and attaches the zip to a GitHub release
+#   3. it appends the new version (with its MD5 checksum) to manifest.json and commits that back
+#
+# Users then add the raw manifest.json URL as a plugin repository inside Jellyfin.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release, for example 1.0.0.0'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Resolve version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+            TAG="v${VERSION}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+            # Release onto the tag that was actually pushed, whatever it is called.
+            TAG="${GITHUB_REF_NAME}"
+          fi
+
+          # Jellyfin expects a four part version, so v1.0.0 becomes 1.0.0.0.
+          while [ "$(echo "$VERSION" | tr -cd '.' | wc -c)" -lt 3 ]; do
+            VERSION="$VERSION.0"
+          done
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Releasing version $VERSION on tag $TAG"
+
+      - name: Stamp version
+        run: |
+          cat > Directory.Build.props <<EOF
+          <Project>
+              <PropertyGroup>
+                  <Version>${{ steps.version.outputs.version }}</Version>
+                  <AssemblyVersion>${{ steps.version.outputs.version }}</AssemblyVersion>
+                  <FileVersion>${{ steps.version.outputs.version }}</FileVersion>
+              </PropertyGroup>
+          </Project>
+          EOF
+
+      - name: Build
+        run: dotnet publish Jellyfin.Plugin.CustomLogo/Jellyfin.Plugin.CustomLogo.csproj --configuration Release --output ./publish
+
+      - name: Package
+        id: package
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          ZIP="custom-logo_${VERSION}.zip"
+
+          mkdir -p artifacts
+          # Only the plugin assembly ships: the Jellyfin and ASP.NET assemblies are provided by the server.
+          cd publish
+          zip "../artifacts/${ZIP}" Jellyfin.Plugin.CustomLogo.dll
+          cd ..
+
+          CHECKSUM=$(md5sum "artifacts/${ZIP}" | cut -d ' ' -f 1)
+          echo "zip=${ZIP}" >> "$GITHUB_OUTPUT"
+          echo "checksum=${CHECKSUM}" >> "$GITHUB_OUTPUT"
+          echo "Built ${ZIP} with checksum ${CHECKSUM}"
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
+          files: artifacts/${{ steps.package.outputs.zip }}
+          generate_release_notes: true
+
+      - name: Update manifest.json
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ steps.version.outputs.tag }}
+          CHECKSUM: ${{ steps.package.outputs.checksum }}
+          ZIP: ${{ steps.package.outputs.zip }}
+          REPO: ${{ github.repository }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from datetime import datetime, timezone
+
+          version = os.environ['VERSION']
+          source = (
+              f"https://github.com/{os.environ['REPO']}/releases/download/"
+              f"{os.environ['TAG']}/{os.environ['ZIP']}"
+          )
+
+          with open('manifest.json', encoding='utf-8') as handle:
+              manifest = json.load(handle)
+
+          entry = {
+              'version': version,
+              'changelog': f'Release {version}.',
+              'targetAbi': '10.11.0.0',
+              'sourceUrl': source,
+              'checksum': os.environ['CHECKSUM'],
+              'timestamp': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+          }
+
+          versions = manifest[0].setdefault('versions', [])
+          versions = [v for v in versions if v.get('version') != version]
+          versions.insert(0, entry)
+          manifest[0]['versions'] = versions
+
+          with open('manifest.json', 'w', encoding='utf-8') as handle:
+              json.dump(manifest, handle, indent=2)
+              handle.write('\n')
+          PY
+
+      - name: Commit manifest.json
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add manifest.json
+
+          if git diff --staged --quiet; then
+            echo "manifest.json unchanged"
+          else
+            git commit -m "chore: add ${{ steps.version.outputs.version }} to manifest [skip ci]"
+            git push origin HEAD:main
+          fi

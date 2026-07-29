@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Custom Logo</title>
+</head>
+<body>
+<div id="CustomLogoConfigPage" data-role="page" class="page type-interior pluginConfigurationPage"
+     data-require="emby-input,emby-button,emby-select,emby-checkbox,emby-collapse">
+    <div data-role="content">
+        <div class="content-primary">
+            <form id="CustomLogoConfigForm">
+
+                <div class="verticalSection">
+                    <h2 class="sectionTitle">Replacement mode</h2>
+                    <div class="selectContainer">
+                        <label class="selectLabel" for="Mode">What should be replaced</label>
+                        <select is="emby-select" id="Mode" name="Mode" class="emby-select-withcolor emby-select">
+                            <option value="All">All logos</option>
+                            <option value="Specific">Only the logos I select</option>
+                            <option value="None">Nothing (disable the plugin's effect)</option>
+                        </select>
+                        <div class="fieldDescription">
+                            "Nothing" leaves the served page completely untouched without uninstalling the plugin.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="verticalSection" id="SpecificTargets">
+                    <h2 class="sectionTitle">Individual logos</h2>
+                    <div class="fieldDescription" style="margin-bottom:1em;">
+                        Only used when the mode above is set to "Only the logos I select".
+                    </div>
+
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
+                            <input id="ReplaceSplashLogo" name="ReplaceSplashLogo" type="checkbox" is="emby-checkbox" />
+                            <span>Splash / loading logo</span>
+                        </label>
+                        <div class="fieldDescription checkboxFieldDescription">
+                            The large logo shown while the web client boots.
+                        </div>
+                    </div>
+
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
+                            <input id="ReplaceHeaderLogo" name="ReplaceHeaderLogo" type="checkbox" is="emby-checkbox" />
+                            <span>Header logo and header text</span>
+                        </label>
+                        <div class="fieldDescription checkboxFieldDescription">
+                            The logo in the top bar, including the TV layout.
+                        </div>
+                    </div>
+
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
+                            <input id="ReplaceDrawerLogo" name="ReplaceDrawerLogo" type="checkbox" is="emby-checkbox" />
+                            <span>Admin drawer logo</span>
+                        </label>
+                        <div class="fieldDescription checkboxFieldDescription">
+                            The logo in the dashboard side drawer.
+                        </div>
+                    </div>
+
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
+                            <input id="ReplaceFavicon" name="ReplaceFavicon" type="checkbox" is="emby-checkbox" />
+                            <span>Favicon and touch icons</span>
+                        </label>
+                        <div class="fieldDescription checkboxFieldDescription">
+                            The icon shown in the browser tab and when pinned to a home screen.
+                        </div>
+                    </div>
+
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
+                            <input id="ReplaceBrowserTitle" name="ReplaceBrowserTitle" type="checkbox" is="emby-checkbox" />
+                            <span>Browser tab title</span>
+                        </label>
+                        <div class="fieldDescription checkboxFieldDescription">
+                            Replaces the initial "Jellyfin" tab title with your header text. The web client rewrites
+                            the title as you navigate, so this mainly affects the initial load.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="verticalSection">
+                    <h2 class="sectionTitle">Logo image</h2>
+
+                    <div class="selectContainer">
+                        <label class="selectLabel" for="LogoSource">Logo source</label>
+                        <select is="emby-select" id="LogoSource" name="LogoSource" class="emby-select-withcolor emby-select">
+                            <option value="Url">External URL</option>
+                            <option value="Upload">Uploaded file</option>
+                        </select>
+                    </div>
+
+                    <div class="inputContainer" id="LogoUrlContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="LogoUrl">Logo URL</label>
+                        <input id="LogoUrl" name="LogoUrl" type="url" is="emby-input" />
+                        <div class="fieldDescription">
+                            A publicly reachable image URL, for example
+                            <code>https://example.com/logo.png</code>. Clients load this directly, so it must be
+                            reachable from their browsers, not just from the server.
+                        </div>
+                    </div>
+
+                    <div id="LogoUploadContainer">
+                        <div class="inputContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="LogoFile">Upload a logo</label>
+                            <input id="LogoFile" name="LogoFile" type="file" accept="image/*" is="emby-input" />
+                            <div class="fieldDescription">
+                                Maximum 2 MB. Uploaded images are embedded directly into the page, which is what
+                                removes the extra request that would otherwise cause a flash of the default logo.
+                            </div>
+                        </div>
+                        <div style="margin-bottom:1em;">
+                            <span id="LogoUploadStatus" class="fieldDescription"></span>
+                        </div>
+                        <div style="margin-bottom:1em;">
+                            <img id="LogoPreview" alt="Current logo" style="display:none;max-height:80px;background:#333;padding:8px;border-radius:4px;" />
+                        </div>
+                        <div>
+                            <button is="emby-button" type="button" id="UploadLogoButton" class="raised block emby-button">
+                                <span>Upload logo</span>
+                            </button>
+                            <button is="emby-button" type="button" id="RemoveLogoButton" class="raised block emby-button">
+                                <span>Remove uploaded logo</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="verticalSection">
+                    <h2 class="sectionTitle">Header text</h2>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="HeaderText">Header text</label>
+                        <input id="HeaderText" name="HeaderText" type="text" is="emby-input" />
+                        <div class="fieldDescription">Shown next to the header logo, and used as the browser tab title.</div>
+                    </div>
+
+                    <div class="checkboxContainer">
+                        <label class="emby-checkbox-label">
+                            <input id="ShowHeaderText" name="ShowHeaderText" type="checkbox" is="emby-checkbox" />
+                            <span>Show the header text next to the logo</span>
+                        </label>
+                    </div>
+
+                    <div class="checkboxContainer">
+                        <label class="emby-checkbox-label">
+                            <input id="HideHeaderTextOnMobile" name="HideHeaderTextOnMobile" type="checkbox" is="emby-checkbox" />
+                            <span>Hide the header text on narrow screens</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="verticalSection">
+                    <h2 class="sectionTitle">Appearance</h2>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="HeaderLogoSize">Header logo height</label>
+                        <input id="HeaderLogoSize" name="HeaderLogoSize" type="text" is="emby-input" />
+                        <div class="fieldDescription">A CSS length, for example <code>2.2em</code>.</div>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="HeaderTextColor">Header text colour</label>
+                        <input id="HeaderTextColor" name="HeaderTextColor" type="text" is="emby-input" />
+                        <div class="fieldDescription">A CSS colour, for example <code>#fff</code>.</div>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="HeaderTextFontSize">Header text size</label>
+                        <input id="HeaderTextFontSize" name="HeaderTextFontSize" type="text" is="emby-input" />
+                        <div class="fieldDescription">A CSS length, for example <code>1.1em</code>.</div>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="HeaderTextFontWeight">Header text weight</label>
+                        <input id="HeaderTextFontWeight" name="HeaderTextFontWeight" type="text" is="emby-input" />
+                        <div class="fieldDescription">A CSS font weight, for example <code>600</code>.</div>
+                    </div>
+                </div>
+
+                <div class="verticalSection">
+                    <h2 class="sectionTitle">Favicon</h2>
+
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
+                            <input id="UseSeparateFavicon" name="UseSeparateFavicon" type="checkbox" is="emby-checkbox" />
+                            <span>Use a different image for the favicon</span>
+                        </label>
+                        <div class="fieldDescription checkboxFieldDescription">
+                            Off means the favicon uses the logo above.
+                        </div>
+                    </div>
+
+                    <div id="FaviconOptions">
+                        <div class="selectContainer">
+                            <label class="selectLabel" for="FaviconSource">Favicon source</label>
+                            <select is="emby-select" id="FaviconSource" name="FaviconSource" class="emby-select-withcolor emby-select">
+                                <option value="Url">External URL</option>
+                                <option value="Upload">Uploaded file</option>
+                            </select>
+                        </div>
+
+                        <div class="inputContainer" id="FaviconUrlContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="FaviconUrl">Favicon URL</label>
+                            <input id="FaviconUrl" name="FaviconUrl" type="url" is="emby-input" />
+                        </div>
+
+                        <div id="FaviconUploadContainer">
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="FaviconFile">Upload a favicon</label>
+                                <input id="FaviconFile" name="FaviconFile" type="file" accept="image/*" is="emby-input" />
+                                <div class="fieldDescription">Maximum 2 MB.</div>
+                            </div>
+                            <div style="margin-bottom:1em;">
+                                <span id="FaviconUploadStatus" class="fieldDescription"></span>
+                            </div>
+                            <div style="margin-bottom:1em;">
+                                <img id="FaviconPreview" alt="Current favicon" style="display:none;max-height:48px;background:#333;padding:8px;border-radius:4px;" />
+                            </div>
+                            <div>
+                                <button is="emby-button" type="button" id="UploadFaviconButton" class="raised block emby-button">
+                                    <span>Upload favicon</span>
+                                </button>
+                                <button is="emby-button" type="button" id="RemoveFaviconButton" class="raised block emby-button">
+                                    <span>Remove uploaded favicon</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="verticalSection">
+                    <button is="emby-button" type="submit" class="raised button-submit block emby-button">
+                        <span>Save</span>
+                    </button>
+                    <div class="fieldDescription" style="margin-top:1em;">
+                        Changes apply to the next full page load. Reload the web client (Ctrl+F5 / Cmd+Shift+R) to
+                        see them.
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        (function () {
+            var pluginUniqueId = 'f3a1c0d2-7b5e-4a68-9d31-2e6c8b4f7a10';
+            var page = document.querySelector('#CustomLogoConfigPage');
+
+            function el(id) {
+                return page.querySelector('#' + id);
+            }
+
+            function authHeaders() {
+                return { 'Authorization': 'MediaBrowser Token="' + ApiClient.accessToken() + '"' };
+            }
+
+            function updateVisibility() {
+                el('SpecificTargets').style.display = el('Mode').value === 'Specific' ? '' : 'none';
+
+                var logoUpload = el('LogoSource').value === 'Upload';
+                el('LogoUrlContainer').style.display = logoUpload ? 'none' : '';
+                el('LogoUploadContainer').style.display = logoUpload ? '' : 'none';
+
+                var separate = el('UseSeparateFavicon').checked;
+                el('FaviconOptions').style.display = separate ? '' : 'none';
+
+                var faviconUpload = el('FaviconSource').value === 'Upload';
+                el('FaviconUrlContainer').style.display = faviconUpload ? 'none' : '';
+                el('FaviconUploadContainer').style.display = faviconUpload ? '' : 'none';
+            }
+
+            function refreshPreview(slot, imgId, statusId, fileName) {
+                var img = el(imgId);
+                var status = el(statusId);
+
+                if (!fileName) {
+                    img.style.display = 'none';
+                    status.textContent = 'No file uploaded yet.';
+                    return;
+                }
+
+                status.textContent = 'Uploaded: ' + fileName;
+                img.src = ApiClient.getUrl('CustomLogo/Image/' + slot, {
+                    api_key: ApiClient.accessToken(),
+                    t: Date.now()
+                });
+                img.style.display = '';
+            }
+
+            function loadConfig(config) {
+                el('Mode').value = config.Mode;
+                el('ReplaceSplashLogo').checked = config.ReplaceSplashLogo;
+                el('ReplaceHeaderLogo').checked = config.ReplaceHeaderLogo;
+                el('ReplaceDrawerLogo').checked = config.ReplaceDrawerLogo;
+                el('ReplaceFavicon').checked = config.ReplaceFavicon;
+                el('ReplaceBrowserTitle').checked = config.ReplaceBrowserTitle;
+
+                el('LogoSource').value = config.LogoSource;
+                el('LogoUrl').value = config.LogoUrl || '';
+
+                el('HeaderText').value = config.HeaderText || '';
+                el('ShowHeaderText').checked = config.ShowHeaderText;
+                el('HideHeaderTextOnMobile').checked = config.HideHeaderTextOnMobile;
+
+                el('HeaderLogoSize').value = config.HeaderLogoSize || '';
+                el('HeaderTextColor').value = config.HeaderTextColor || '';
+                el('HeaderTextFontSize').value = config.HeaderTextFontSize || '';
+                el('HeaderTextFontWeight').value = config.HeaderTextFontWeight || '';
+
+                el('UseSeparateFavicon').checked = config.UseSeparateFavicon;
+                el('FaviconSource').value = config.FaviconSource;
+                el('FaviconUrl').value = config.FaviconUrl || '';
+
+                refreshPreview('Logo', 'LogoPreview', 'LogoUploadStatus', config.UploadedLogoFileName);
+                refreshPreview('Favicon', 'FaviconPreview', 'FaviconUploadStatus', config.UploadedFaviconFileName);
+
+                updateVisibility();
+            }
+
+            function upload(slot, inputId) {
+                var input = el(inputId);
+                if (!input.files || !input.files.length) {
+                    Dashboard.alert('Choose a file first.');
+                    return;
+                }
+
+                var formData = new FormData();
+                formData.append('file', input.files[0]);
+
+                Dashboard.showLoadingMsg();
+                fetch(ApiClient.getUrl('CustomLogo/Upload/' + slot), {
+                    method: 'POST',
+                    body: formData,
+                    headers: authHeaders()
+                }).then(function (response) {
+                    if (!response.ok) {
+                        return response.text().then(function (text) {
+                            throw new Error(text || ('Upload failed with status ' + response.status));
+                        });
+                    }
+
+                    input.value = '';
+                    return ApiClient.getPluginConfiguration(pluginUniqueId).then(loadConfig);
+                }).then(function () {
+                    Dashboard.hideLoadingMsg();
+                    Dashboard.alert('Upload complete. Reload the web client to see the change.');
+                }).catch(function (error) {
+                    Dashboard.hideLoadingMsg();
+                    Dashboard.alert(error.message || 'Upload failed.');
+                });
+            }
+
+            function removeUpload(slot) {
+                Dashboard.showLoadingMsg();
+                fetch(ApiClient.getUrl('CustomLogo/Image/' + slot), {
+                    method: 'DELETE',
+                    headers: authHeaders()
+                }).then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Removal failed with status ' + response.status);
+                    }
+
+                    return ApiClient.getPluginConfiguration(pluginUniqueId).then(loadConfig);
+                }).then(function () {
+                    Dashboard.hideLoadingMsg();
+                }).catch(function (error) {
+                    Dashboard.hideLoadingMsg();
+                    Dashboard.alert(error.message || 'Removal failed.');
+                });
+            }
+
+            page.addEventListener('pageshow', function () {
+                Dashboard.showLoadingMsg();
+                ApiClient.getPluginConfiguration(pluginUniqueId).then(function (config) {
+                    loadConfig(config);
+                    Dashboard.hideLoadingMsg();
+                });
+            });
+
+            page.querySelector('#Mode').addEventListener('change', updateVisibility);
+            page.querySelector('#LogoSource').addEventListener('change', updateVisibility);
+            page.querySelector('#FaviconSource').addEventListener('change', updateVisibility);
+            page.querySelector('#UseSeparateFavicon').addEventListener('change', updateVisibility);
+
+            page.querySelector('#UploadLogoButton').addEventListener('click', function () {
+                upload('Logo', 'LogoFile');
+            });
+            page.querySelector('#UploadFaviconButton').addEventListener('click', function () {
+                upload('Favicon', 'FaviconFile');
+            });
+            page.querySelector('#RemoveLogoButton').addEventListener('click', function () {
+                removeUpload('Logo');
+            });
+            page.querySelector('#RemoveFaviconButton').addEventListener('click', function () {
+                removeUpload('Favicon');
+            });
+
+            page.querySelector('#CustomLogoConfigForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                Dashboard.showLoadingMsg();
+                ApiClient.getPluginConfiguration(pluginUniqueId).then(function (config) {
+                    config.Mode = el('Mode').value;
+                    config.ReplaceSplashLogo = el('ReplaceSplashLogo').checked;
+                    config.ReplaceHeaderLogo = el('ReplaceHeaderLogo').checked;
+                    config.ReplaceDrawerLogo = el('ReplaceDrawerLogo').checked;
+                    config.ReplaceFavicon = el('ReplaceFavicon').checked;
+                    config.ReplaceBrowserTitle = el('ReplaceBrowserTitle').checked;
+
+                    config.LogoSource = el('LogoSource').value;
+                    config.LogoUrl = el('LogoUrl').value;
+
+                    config.HeaderText = el('HeaderText').value;
+                    config.ShowHeaderText = el('ShowHeaderText').checked;
+                    config.HideHeaderTextOnMobile = el('HideHeaderTextOnMobile').checked;
+
+                    config.HeaderLogoSize = el('HeaderLogoSize').value;
+                    config.HeaderTextColor = el('HeaderTextColor').value;
+                    config.HeaderTextFontSize = el('HeaderTextFontSize').value;
+                    config.HeaderTextFontWeight = el('HeaderTextFontWeight').value;
+
+                    config.UseSeparateFavicon = el('UseSeparateFavicon').checked;
+                    config.FaviconSource = el('FaviconSource').value;
+                    config.FaviconUrl = el('FaviconUrl').value;
+
+                    ApiClient.updatePluginConfiguration(pluginUniqueId, config).then(function (result) {
+                        Dashboard.processPluginConfigurationUpdateResult(result);
+                    });
+                });
+
+                return false;
+            });
+        })();
+    </script>
+</div>
+</body>
+</html>

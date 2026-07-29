@@ -1,0 +1,11 @@
+[
+  {
+    "guid": "f3a1c0d2-7b5e-4a68-9d31-2e6c8b4f7a10",
+    "name": "Custom Logo",
+    "description": "Replaces the Jellyfin splash, header, drawer and favicon branding with your own logo and header text.",
+    "overview": "Replace the default Jellyfin branding with your own logo and header text.",
+    "owner": "WimWamWom",
+    "category": "General",
+    "versions": []
+  }
+]

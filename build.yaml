@@ -1,0 +1,16 @@
+---
+name: "Custom Logo"
+guid: "f3a1c0d2-7b5e-4a68-9d31-2e6c8b4f7a10"
+version: "1.0.0.0"
+targetAbi: "10.11.0.0"
+framework: "net9.0"
+owner: "WimWamWom"
+overview: "Replace the default Jellyfin branding with your own logo and header text."
+description: >
+  Replaces the Jellyfin splash, header, drawer and favicon branding with your own logo and header
+  text. The branding is injected server-side into the served index.html, so the custom logo is
+  present on the very first paint and no default logo flashes before it.
+category: "General"
+artifacts:
+  - "Jellyfin.Plugin.CustomLogo.dll"
+changelog: "Initial release."

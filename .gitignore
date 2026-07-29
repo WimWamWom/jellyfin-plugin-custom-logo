@@ -1,0 +1,38 @@
+# Build output
+bin/
+obj/
+artifacts/
+[Dd]ebug/
+[Rr]elease/
+*.dll
+*.pdb
+*.zip
+
+# NuGet
+*.nupkg
+packages/
+.nuget/
+
+# IDE / editor
+.vs/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/tasks.json
+.idea/
+*.user
+*.suo
+*.userprefs
+*.swp
+*~
+
+# OS cruft
+Thumbs.db
+ehthumbs.db
+desktop.ini
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
