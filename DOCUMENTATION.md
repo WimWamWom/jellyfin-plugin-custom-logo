@@ -225,6 +225,10 @@ assemblies are provided by the server at runtime.
 
 ## Releasing
 
+Changelog entries are shown to users inside Jellyfin, so keep them to what changes about the plugin
+itself. Repository and build changes — workflows, packaging, documentation — belong in the commit
+history rather than in the catalog.
+
 1. Add a section for the new version at the top of [CHANGELOG.md](CHANGELOG.md), using the same
    four-part version you are about to tag:
 

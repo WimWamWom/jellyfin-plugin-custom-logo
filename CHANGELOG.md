@@ -1,10 +1,11 @@
 # Changelog
 
-Each `## <version>` section below becomes both the GitHub release body and the changelog Jellyfin
-shows under **Revisions** on the plugin page. Jellyfin renders it as Markdown.
+Changes to the plugin, as users experience them. Heading format: `## 1.0.0.3`, matching the tag
+`v1.0.0.3`. See [DOCUMENTATION.md](DOCUMENTATION.md#releasing) for how this file is published.
 
-Use the same four-part version you tag with, e.g. `## 1.0.0.3` for tag `v1.0.0.3`. Add the section
-*before* pushing the tag — the release workflow reads it from here.
+> Entries describe the plugin only — what changes for someone running it. Repository and build
+> details (workflows, packaging, docs) belong in the commit history, not here: these sections are
+> shown to users inside Jellyfin.
 
 ## 1.0.0.3
 
@@ -24,8 +25,6 @@ Use the same four-part version you tag with, e.g. `## 1.0.0.3` for tag `v1.0.0.3
 
 - The header text is now centred properly next to the logo — its line height no longer nudges it off
   centre.
-- Release notes are no longer a bare "Release x.y.z." stub. They are written in `CHANGELOG.md` and used
-  for both the GitHub release and the changelog shown in the plugin catalog.
 
 ## 1.0.0.2
 
