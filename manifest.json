@@ -10,7 +10,7 @@
     "versions": [
       {
         "version": "1.0.0.2",
-        "changelog": "Release 1.0.0.2.",
+        "changelog": "**Fixed**\n\n- The header logo was clipped at the top and bottom, and the header text sat in the wrong place. The layout rules now win by CSS specificity instead of depending on stylesheet order, which is not reliable because Jellyfin can load its own styles after the plugin's.\n- The logo now scales to fit its box, so it can no longer be clipped.\n\n**Changed**\n\n- Default header logo height lowered to `1.8em`. Existing settings are left untouched.\n- New `--customlogo-text-offset` variable to widen the gap before the header text, for wide banner-style logos.\n\n**Removed**\n\n- The browser tab title option. It could never work: Jellyfin overwrites the tab title with the server name immediately after loading. Use *Dashboard → General → Server name* instead.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/WimWamWom/jellyfin-plugin-custom-logo/releases/download/v1.0.0.2/custom-logo_1.0.0.2.zip",
         "checksum": "892d6b7d5f14fb95c8b2a43d860959e0",
@@ -18,7 +18,7 @@
       },
       {
         "version": "1.0.0.1",
-        "changelog": "Release 1.0.0.1.",
+        "changelog": "**Fixed**\n\n- No longer breaks plugins that build on File Transformation, such as Media Bar. The branding is now applied on top of other plugins' changes instead of replacing the page outright.\n\n**Added**\n\n- Entry in the dashboard's left-hand navigation.\n- Plugin icon in the catalog.\n\n**Changed**\n\n- Only the logo image itself is forced with `!important` now, so your own custom CSS keeps control over the header layout.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/WimWamWom/jellyfin-plugin-custom-logo/releases/download/v1.0.0.1/custom-logo_1.0.0.1.zip",
         "checksum": "e1daf15391dfea8c146025e40826c992",
@@ -26,7 +26,7 @@
       },
       {
         "version": "1.0.0.0",
-        "changelog": "Release 1.0.0.0.",
+        "changelog": "Initial release.\n\n- Replaces the splash, header, admin drawer and favicon branding with your own logo.\n- Custom header text next to the logo, optionally hidden on narrow screens.\n- Logo from an external URL, or uploaded straight from the dashboard.\n- Choose between replacing all logos, only selected ones, or nothing at all.\n- The branding is injected into the page server-side, so there is no flash of the default Jellyfin logo while loading.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/WimWamWom/jellyfin-plugin-custom-logo/releases/download/v1.0.0.0/custom-logo_1.0.0.0.zip",
         "checksum": "7e68cc46e3866edfeac61d95f3c50f0c",
