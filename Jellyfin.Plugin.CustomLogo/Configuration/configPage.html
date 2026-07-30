@@ -92,6 +92,7 @@
                             A publicly reachable image URL, for example
                             <code>https://example.com/logo.png</code>. Clients load this directly, so it must be
                             reachable from their browsers, not just from the server.
+                            If left empty, the default Jellyfin logo is used.
                         </div>
                     </div>
 
@@ -130,6 +131,7 @@
                         <div class="fieldDescription">
                             Shown next to the header logo. The browser tab title is not affected by this, that
                             one comes from <b>Dashboard &rarr; General &rarr; Server name</b>.
+                            If left empty, no text is added and the header stays as Jellyfin renders it.
                         </div>
                     </div>
 
@@ -156,14 +158,17 @@
                         <input id="HeaderLogoSize" name="HeaderLogoSize" type="text" is="emby-input" />
                         <div class="fieldDescription">
                             A CSS length, for example <code>2em</code>. A plain number is treated as
-                            <code>em</code>.
+                            <code>em</code>. If left empty, the default Jellyfin height is used.
                         </div>
                     </div>
 
                     <div class="inputContainer">
                         <label class="inputLabel inputLabelUnfocused" for="HeaderTextColor">Header text colour</label>
                         <input id="HeaderTextColor" name="HeaderTextColor" type="text" is="emby-input" />
-                        <div class="fieldDescription">A CSS colour, for example <code>#fff</code>.</div>
+                        <div class="fieldDescription">
+                            A CSS colour, for example <code>#fff</code>. If left empty, the default Jellyfin
+                            colour is used.
+                        </div>
                     </div>
 
                     <div class="inputContainer">
@@ -172,7 +177,7 @@
                         <div class="fieldDescription">
                             A CSS length, for example <code>1.8em</code>. A plain number is treated as
                             <code>em</code>. Set independently of the logo height; the width follows the text
-                            automatically.
+                            automatically. If left empty, the default Jellyfin size is used.
                         </div>
                     </div>
 
@@ -181,6 +186,7 @@
                         <input id="HeaderTextFontWeight" name="HeaderTextFontWeight" type="text" is="emby-input" />
                         <div class="fieldDescription">
                             A CSS font weight. <code>400</code> is normal, <code>600</code> semi-bold.
+                            If left empty, the default Jellyfin weight is used.
                         </div>
                     </div>
                 </div>
@@ -210,6 +216,9 @@
                         <div class="inputContainer" id="FaviconUrlContainer">
                             <label class="inputLabel inputLabelUnfocused" for="FaviconUrl">Favicon URL</label>
                             <input id="FaviconUrl" name="FaviconUrl" type="url" is="emby-input" />
+                            <div class="fieldDescription">
+                                If left empty, the default Jellyfin favicon is used.
+                            </div>
                         </div>
 
                         <div id="FaviconUploadContainer">

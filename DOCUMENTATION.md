@@ -75,6 +75,13 @@ Open **Custom Logo** in the dashboard's left-hand navigation, or go through
 | Logo source | An external URL, or a file uploaded here (max 2 MB). |
 | Header text | Drawn next to the header logo. |
 | Appearance | Logo height, text height, text colour, text weight: all plain CSS values. Logo and text height are independent; the text's width always follows its content. |
+
+**Every field falls back to Jellyfin's own value when left empty.** The plugin then omits that
+declaration entirely rather than substituting a default of its own, so clearing a field is how you
+hand a detail back to the web client. Clear the logo itself and the plugin injects nothing at all.
+
+Size fields accept a plain number and read it as `em`, since a unitless number is not a valid CSS
+length and the browser would otherwise discard the declaration.
 | Favicon | Uses the main logo unless you tick "use a different image". |
 
 Settings apply on the next full page load. Reload the web client with <kbd>Ctrl</kbd>+<kbd>F5</kbd>

@@ -6,6 +6,7 @@ using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Configuration;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 
 namespace Jellyfin.Plugin.CustomLogo.Injection;
@@ -47,11 +48,13 @@ internal sealed class CustomLogoMiddleware
     /// <param name="context">The request context.</param>
     /// <param name="transformer">The index transformer.</param>
     /// <param name="serverConfigurationManager">The server configuration manager.</param>
+    /// <param name="logger">The logger.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     public async Task InvokeAsync(
         HttpContext context,
         IndexHtmlTransformer transformer,
-        IServerConfigurationManager serverConfigurationManager)
+        IServerConfigurationManager serverConfigurationManager,
+        ILogger<CustomLogoMiddleware> logger)
     {
         if (!IsIndexRequest(context, serverConfigurationManager) || !transformer.IsEnabled())
         {
@@ -95,8 +98,21 @@ internal sealed class CustomLogoMiddleware
             return;
         }
 
-        var html = Encoding.UTF8.GetString(buffer.GetBuffer(), 0, (int)buffer.Length);
-        var transformed = transformer.Transform(html);
+        string? transformed;
+        try
+        {
+            var html = Encoding.UTF8.GetString(buffer.GetBuffer(), 0, (int)buffer.Length);
+            transformed = transformer.Transform(html);
+        }
+#pragma warning disable CA1031 // Do not catch general exception types
+        catch (Exception ex)
+#pragma warning restore CA1031
+        {
+            // Branding is cosmetic. Whatever goes wrong in here, the web client still has to load,
+            // so fall back to the page exactly as the rest of the pipeline produced it.
+            logger.LogError(ex, "Failed to apply custom branding to the web client index");
+            transformed = null;
+        }
 
         if (transformed is null)
         {

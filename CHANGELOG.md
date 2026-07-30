@@ -7,6 +7,20 @@ Changes to the plugin, as users experience them. Heading format: `## 1.0.0.3`, m
 > details (workflows, packaging, docs) belong in the commit history, not here: these sections are
 > shown to users inside Jellyfin.
 
+## 1.0.0.5
+
+**Changed**
+
+- Clearing an appearance field now hands that detail back to Jellyfin instead of applying a value
+  chosen by the plugin, and every field says so. Empty the logo height and the header keeps Jellyfin's
+  own height; empty the text colour and it keeps Jellyfin's colour. Clear the logo itself and the
+  plugin stays out of the page entirely.
+
+**Fixed**
+
+- A failure while applying the branding can no longer stop the web client from loading. The page is
+  served unbranded instead and the error is written to the server log.
+
 ## 1.0.0.4
 
 **Changed**

@@ -21,25 +21,10 @@ internal static class CustomCssBuilder
     private const string HeaderSelector = ".pageTitleWithDefaultLogo.pageTitleWithLogo";
 
     /// <summary>
-    /// Horizontal space reserved for the logo, overridable for wide logos.
+    /// Horizontal space reserved for the logo, overridable for wide logos. Falls back to the web
+    /// client's own header height when no logo height is configured.
     /// </summary>
-    private const string TextOffset = "var(--customlogo-text-offset,var(--customlogo-size))";
-
-    /// <summary>
-    /// Default header logo height.
-    /// </summary>
-    private const string DefaultLogoSize = "2em";
-
-    /// <summary>
-    /// Default header text height. Set independently of the logo height on purpose: the two are
-    /// tuned by eye, not by a fixed ratio. The text's width always follows its content.
-    /// </summary>
-    private const string DefaultTextSize = "1.8em";
-
-    /// <summary>
-    /// Default header text weight. Normal rather than semi-bold, which reads as heavy at these sizes.
-    /// </summary>
-    private const string DefaultTextWeight = "400";
+    private const string TextOffset = "var(--customlogo-text-offset,var(--customlogo-size,1.7em))";
 
     /// <summary>
     /// Builds the stylesheet for the supplied configuration.
@@ -61,10 +46,12 @@ internal static class CustomCssBuilder
             return string.Empty;
         }
 
-        var logoSize = SanitizeCssLength(config.HeaderLogoSize, DefaultLogoSize);
-        var textSize = SanitizeCssLength(config.HeaderTextFontSize, DefaultTextSize);
-        var textColor = SanitizeCssValue(config.HeaderTextColor, "#fff");
-        var textWeight = SanitizeCssValue(config.HeaderTextFontWeight, DefaultTextWeight);
+        // An empty appearance field means "leave it to Jellyfin": the declaration is skipped
+        // entirely, so the web client's own value applies instead of a value of the plugin's choosing.
+        var logoSize = OptionalCssLength(config.HeaderLogoSize);
+        var textSize = OptionalCssLength(config.HeaderTextFontSize);
+        var textColor = OptionalCssValue(config.HeaderTextColor);
+        var textWeight = OptionalCssValue(config.HeaderTextFontWeight);
 
         var sb = new StringBuilder(1024);
 
@@ -77,11 +64,20 @@ internal static class CustomCssBuilder
 
         if (headerText)
         {
-            sb.Append("--customlogo-header-text:\"").Append(EscapeCssString(config.HeaderText)).Append("\";")
-              .Append("--customlogo-text-size:").Append(textSize).Append(';');
+            sb.Append("--customlogo-header-text:\"").Append(EscapeCssString(config.HeaderText)).Append("\";");
+
+            if (textSize is not null)
+            {
+                sb.Append("--customlogo-text-size:").Append(textSize).Append(';');
+            }
         }
 
-        sb.Append("--customlogo-size:").Append(logoSize).Append(";}");
+        if (logoSize is not null)
+        {
+            sb.Append("--customlogo-size:").Append(logoSize).Append(';');
+        }
+
+        sb.Append('}');
 
         if (splash)
         {
@@ -112,8 +108,12 @@ internal static class CustomCssBuilder
             sb.Append("display:flex;")
               .Append("align-items:center;")
               .Append("width:auto;")
-              .Append("height:var(--customlogo-size);")
               .Append("overflow:visible;");
+
+            if (logoSize is not null)
+            {
+                sb.Append("height:var(--customlogo-size);");
+            }
 
             // Reserve space for the logo so the ::after text sits next to it rather than on top of
             // it. Wide (banner style) logos can widen the gap via --customlogo-text-offset.
@@ -125,11 +125,25 @@ internal static class CustomCssBuilder
             {
                 sb.Append(HeaderSelector).Append("::after{")
                   .Append("content:var(--customlogo-header-text);")
-                  .Append("color:").Append(textColor).Append(';')
-                  .Append("font-size:var(--customlogo-text-size);")
                   .Append("line-height:1;")
-                  .Append("font-weight:").Append(textWeight).Append(';')
-                  .Append("white-space:nowrap;}");
+                  .Append("white-space:nowrap;");
+
+                if (textSize is not null)
+                {
+                    sb.Append("font-size:var(--customlogo-text-size);");
+                }
+
+                if (textColor is not null)
+                {
+                    sb.Append("color:").Append(textColor).Append(';');
+                }
+
+                if (textWeight is not null)
+                {
+                    sb.Append("font-weight:").Append(textWeight).Append(';');
+                }
+
+                sb.Append('}');
             }
 
             if (hasLogo)
@@ -191,6 +205,45 @@ internal static class CustomCssBuilder
         }
 
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Validates an optional CSS length.
+    /// </summary>
+    /// <param name="value">The configured value.</param>
+    /// <returns>
+    /// The sanitized length, or <c>null</c> when the field was left empty, meaning the declaration
+    /// should be omitted so that Jellyfin's own value applies.
+    /// </returns>
+    private static string? OptionalCssLength(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        // An unusable value sanitizes to empty, which must also be dropped rather than emitted.
+        var sanitized = SanitizeCssLength(value, string.Empty);
+        return sanitized.Length == 0 ? null : sanitized;
+    }
+
+    /// <summary>
+    /// Validates an optional bare CSS value such as a colour or font weight.
+    /// </summary>
+    /// <param name="value">The configured value.</param>
+    /// <returns>
+    /// The sanitized value, or <c>null</c> when the field was left empty or the value was unusable,
+    /// meaning the declaration should be omitted so that Jellyfin's own value applies.
+    /// </returns>
+    private static string? OptionalCssValue(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        var sanitized = SanitizeCssValue(value, string.Empty);
+        return sanitized.Length == 0 ? null : sanitized;
     }
 
     /// <summary>
