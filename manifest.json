@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/WimWamWom/jellyfin-plugin-custom-logo/master/static/logo.png",
     "versions": [
       {
+        "version": "1.0.0.2",
+        "changelog": "Release 1.0.0.2.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/WimWamWom/jellyfin-plugin-custom-logo/releases/download/v1.0.0.2/custom-logo_1.0.0.2.zip",
+        "checksum": "892d6b7d5f14fb95c8b2a43d860959e0",
+        "timestamp": "2026-07-30T07:03:32Z"
+      },
+      {
         "version": "1.0.0.1",
         "changelog": "Release 1.0.0.1.",
         "targetAbi": "10.11.0.0",
