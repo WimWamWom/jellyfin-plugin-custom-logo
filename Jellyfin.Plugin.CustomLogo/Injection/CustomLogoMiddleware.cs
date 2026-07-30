@@ -159,10 +159,23 @@ internal sealed class CustomLogoMiddleware
             return false;
         }
 
-        // Normalized by the server to either be empty or to start with '/' and have no trailing slash.
-        var baseUrl = serverConfigurationManager.GetNetworkConfiguration().BaseUrl ?? string.Empty;
+        // This middleware sits in front of the entire pipeline, so it runs for API calls and media
+        // streaming too. The common case has to be a plain suffix test: no configuration lookup and
+        // no allocation until a request actually looks like the web client index.
+        var isWebRoot = path.EndsWith("/web/", StringComparison.OrdinalIgnoreCase);
+        if (!isWebRoot && !path.EndsWith("/web/index.html", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
 
-        return string.Equals(path, baseUrl + "/web/", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(path, baseUrl + "/web/index.html", StringComparison.OrdinalIgnoreCase);
+        // Only now confirm the path is exactly the index under this server's base URL. Without the
+        // length check a nested path such as /something/web/ would match, and with a base URL
+        // configured a bare /web/ has to fall through to the server's own redirect.
+        // BaseUrl is normalized to be either empty or to start with '/' and have no trailing slash.
+        var baseUrl = serverConfigurationManager.GetNetworkConfiguration().BaseUrl ?? string.Empty;
+        var suffixLength = isWebRoot ? "/web/".Length : "/web/index.html".Length;
+
+        return path.Length == baseUrl.Length + suffixLength
+            && path.StartsWith(baseUrl, StringComparison.OrdinalIgnoreCase);
     }
 }

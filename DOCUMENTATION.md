@@ -201,20 +201,38 @@ Built against the **Jellyfin 10.11** plugin ABI (`targetAbi 10.11.0.0`, .NET 9).
 references `Jellyfin.Controller` / `Jellyfin.Model` 10.11.0, the lowest 10.11 patch, so the
 assembly stays loadable across the whole 10.11.x line.
 
-**On Jellyfin 12.0.0 (in development):** expect this to need work before it loads. Jellyfin enforces
-plugin ABI per release, so the `targetAbi` and package references have to be bumped regardless. The
-parts most likely to actually break:
+### Jellyfin 12.0.0 (in development)
 
-- `Startup.Configure` serves the web client with `UseStaticFiles` over a `PhysicalFileProvider` at
-  `/web`. If 12.0.0 reworks how the web client is hosted, the path match in `CustomLogoMiddleware`
-  needs revisiting.
-- The CSS selectors (`.splashLogo`, `.pageTitleWithDefaultLogo`, `.adminDrawerLogo`) are
-  jellyfin-web class names, not a stable API. A web client rewrite can rename them.
-- If 12.0.0 introduces a native web-file transformation service, prefer it over the `IStartupFilter`
-  approach.
+Checked against `jellyfin/master` and `jellyfin-web/master`. **Everything this plugin depends on is
+still there**, so porting is a retarget rather than a rewrite:
 
-This is deliberately built only against stable 10.11 APIs. Nothing here depends on pre-release
-Jellyfin code.
+| What the plugin needs | State in 12.0.0 |
+| --- | --- |
+| `IPluginServiceRegistrator` | Unchanged signature |
+| Plugin services registered during `ConfigureServices` | Unchanged (`Program.cs` calls `appHost.Init`), so the `IStartupFilter` still lands in the container ASP.NET Core reads |
+| `/web` served by `UseStaticFiles` over a `PhysicalFileProvider` | Unchanged, including the `index.html` no-cache handling |
+| `index.html` carrying `.splashLogo` and the icon links | Unchanged |
+| `libraryMenu.js` applying both header logo classes | Unchanged, so the two-class selector still wins |
+| `.splashLogo`, `.pageTitleWithLogo`, `.adminDrawerLogo` | Unchanged |
+| `PluginPageInfo.EnableInMainMenu` | Unchanged |
+| `Policies.RequiresElevation` | Unchanged |
+
+What has to change:
+
+- **Target framework `net10.0`**, since 12.0.0 moved up from .NET 9, plus package references to
+  `Jellyfin.Controller` / `Jellyfin.Model` 12.0.0.
+- **`targetAbi` to `12.0.0.0`.** Jellyfin enforces the plugin ABI per release, so a build against
+  10.11 will not load on 12 and vice versa. That means a separate version line, and in practice a
+  separate manifest, per server generation.
+- The header logo rule moved out of the per-theme stylesheets into `src/themes/_base/_theme.scss`. It
+  is still a single-class selector without `!important`, so the plugin's rules still win, but it is
+  worth re-checking once the web client rewrite settles.
+
+There is still no native web-file transformation API in 12.0.0, so `IStartupFilter` remains the way
+to do this.
+
+Released builds are compiled only against stable APIs. Nothing here depends on pre-release Jellyfin
+code.
 
 ## Building
 

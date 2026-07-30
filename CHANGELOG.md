@@ -20,6 +20,8 @@ Changes to the plugin, as users experience them. Heading format: `## 1.0.0.3`, m
 
 - A failure while applying the branding can no longer stop the web client from loading. The page is
   served unbranded instead and the error is written to the server log.
+- Requests other than the web client page are now dismissed by a plain path check. Every request,
+  including media streaming, previously read the network configuration first.
 
 ## 1.0.0.4
 
