@@ -110,16 +110,6 @@ internal sealed partial class IndexHtmlTransformer
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex TileImageRegex();
 
-    [GeneratedRegex(
-        "<title>.*?</title>",
-        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Singleline)]
-    private static partial Regex TitleRegex();
-
-    [GeneratedRegex(
-        "<meta\\b[^>]*\\bname=[\"']application-name[\"'][^>]*>",
-        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
-    private static partial Regex ApplicationNameRegex();
-
     /// <summary>
     /// Escapes a value for use inside a double quoted HTML attribute.
     /// </summary>
@@ -168,8 +158,7 @@ internal sealed partial class IndexHtmlTransformer
 
         sb.Append(config.Mode.ToString()).Append('|')
           .Append(config.ReplaceSplashLogo).Append(config.ReplaceHeaderLogo)
-          .Append(config.ReplaceDrawerLogo).Append(config.ReplaceFavicon)
-          .Append(config.ReplaceBrowserTitle).Append('|')
+          .Append(config.ReplaceDrawerLogo).Append(config.ReplaceFavicon).Append('|')
           .Append(config.LogoSource.ToString()).Append('|')
           .Append(config.LogoUrl).Append('|')
           .Append(config.UseSeparateFavicon).Append('|')
@@ -245,18 +234,6 @@ internal sealed partial class IndexHtmlTransformer
 
                 changed = true;
             }
-        }
-
-        if (config.IsBrowserTitleEnabled() && !string.IsNullOrWhiteSpace(config.HeaderText))
-        {
-            var title = EncodeAttribute(config.HeaderText.Trim());
-
-            html = TitleRegex().Replace(html, _ => string.Concat("<title>", title, "</title>"));
-            html = ApplicationNameRegex().Replace(
-                html,
-                _ => string.Concat("<meta name=\"application-name\" content=\"", title, "\">"));
-
-            changed = true;
         }
 
         return changed ? html : null;

@@ -55,7 +55,6 @@ public class PluginConfiguration : BasePluginConfiguration
         ReplaceHeaderLogo = true;
         ReplaceDrawerLogo = true;
         ReplaceFavicon = true;
-        ReplaceBrowserTitle = true;
 
         LogoSource = ImageSourceKind.Url;
         LogoUrl = string.Empty;
@@ -73,7 +72,8 @@ public class PluginConfiguration : BasePluginConfiguration
         HeaderText = string.Empty;
         ShowHeaderText = true;
         HideHeaderTextOnMobile = true;
-        HeaderLogoSize = "2.2em";
+        // Sized to sit comfortably inside the stock header row.
+        HeaderLogoSize = "1.8em";
         HeaderTextColor = "#fff";
         HeaderTextFontSize = "1.1em";
         HeaderTextFontWeight = "600";
@@ -103,11 +103,6 @@ public class PluginConfiguration : BasePluginConfiguration
     /// Gets or sets a value indicating whether the favicon and touch icons are replaced.
     /// </summary>
     public bool ReplaceFavicon { get; set; }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether the browser tab title is replaced with the header text.
-    /// </summary>
-    public bool ReplaceBrowserTitle { get; set; }
 
     /// <summary>
     /// Gets or sets where the logo image is loaded from.
@@ -212,12 +207,6 @@ public class PluginConfiguration : BasePluginConfiguration
     /// </summary>
     /// <returns><c>true</c> when the favicon should be replaced.</returns>
     public bool IsFaviconEnabled() => IsTargetEnabled(ReplaceFavicon);
-
-    /// <summary>
-    /// Gets a value indicating whether the browser title should be replaced given the current mode.
-    /// </summary>
-    /// <returns><c>true</c> when the browser title should be replaced.</returns>
-    public bool IsBrowserTitleEnabled() => IsTargetEnabled(ReplaceBrowserTitle);
 
     private bool IsTargetEnabled(bool specificToggle) => Mode switch
     {

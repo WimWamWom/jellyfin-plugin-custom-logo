@@ -5,6 +5,7 @@ Detailed documentation for the [Jellyfin Custom Logo Plugin](README.md).
 - [How it works, and why it does it this way](#how-it-works-and-why-it-does-it-this-way)
 - [Configuration reference](#configuration-reference)
 - [Working alongside your own custom CSS](#working-alongside-your-own-custom-css)
+- [The catalog icon](#the-catalog-icon)
 - [Working alongside other plugins](#working-alongside-other-plugins)
 - [Migrating from a hand-written CSS block](#migrating-from-a-hand-written-css-block)
 - [Security](#security)
@@ -70,9 +71,9 @@ Open **Custom Logo** in the dashboard's left-hand navigation, or go through
 | Setting | Notes |
 | --- | --- |
 | Replacement mode | `All logos`, `Only the logos I select`, or `Nothing`. `Nothing` leaves the served page untouched without uninstalling the plugin. |
-| Individual logos | Splash, header, drawer, favicon and tab title toggles. Only consulted in `Only the logos I select` mode. |
+| Individual logos | Splash, header, drawer and favicon toggles. Only consulted in `Only the logos I select` mode. |
 | Logo source | An external URL, or a file uploaded here (max 2 MB). |
-| Header text | Drawn next to the header logo and used as the tab title. |
+| Header text | Drawn next to the header logo. |
 | Appearance | Logo height, text colour, text size, text weight — all plain CSS values. |
 | Favicon | Uses the main logo unless you tick "use a different image". |
 
@@ -85,10 +86,14 @@ instead.
 
 ### Notes on specific targets
 
-- **Browser tab title.** The web client rewrites `document.title` as you navigate, so replacing
-  `<title>` mainly affects the initial load and the tab title before the app takes over. Replacing it
-  everywhere would mean fighting the client's own routing on every navigation, which is not something
-  a branding plugin should do.
+- **The browser tab title is out of scope.** It is not driven by the HTML: `libraryMenu.js` overwrites
+  `document.title` with `ServerName` as soon as the client boots, which server-side is
+  `ConfigurationManager.Configuration.ServerName`. Set it under
+  **Dashboard → General → Server name** — Jellyfin already handles this, so the plugin does not touch
+  it.
+- **Header text placement.** The header logo and text only appear on pages without their own title.
+  Jellyfin's `setTitle()` removes the logo classes and writes the page title instead, so on most
+  subpages you see that title rather than your branding. That is stock behaviour.
 - **Header text on mobile.** Below `50em` the text is hidden by default and the header collapses to
   just the logo, matching Jellyfin's own narrow layout.
 
@@ -98,22 +103,50 @@ The plugin marks exactly one thing `!important`: the `background-image` on
 `.pageTitleWithDefaultLogo`. That one has to be forced, because Jellyfin's themes are applied after
 the page loads and every stock theme sets a logo on precisely that selector.
 
-Everything else the plugin emits — sizes, padding, `display`, the `::after` header text — is plain,
-unforced CSS. Your **Dashboard → General → Custom CSS** is applied after the plugin's block, so it
-wins on all of those without you needing `!important`.
+Everything else is plain, unforced CSS — but the header rules are written as
+`.pageTitleWithDefaultLogo.pageTitleWithLogo`, using two classes on purpose. jellyfin-web always
+applies both together, and the two-class specificity beats the web client's own `.pageTitle` (which
+sets `height: 1.7em`) and `.pageTitleWithLogo` (which sets `width: 13.2em`) regardless of stylesheet
+order. Document order is not safe to rely on here: with code splitting, bundle CSS can be inserted at
+runtime and therefore *after* the plugin's block. When those rules lost, the box stayed at the stock
+height and clipped the logo top and bottom.
 
-The plugin also exposes its values as custom properties, which is usually the tidiest way to adjust
-it:
+Your own `!important` still wins over all of it, since importance beats specificity.
+
+The plugin exposes its values as custom properties, which is usually the tidiest way to adjust it:
 
 ```css
 :root {
-    --customlogo-size: 3em;         /* header logo height */
+    --customlogo-size: 2.4em;        /* header logo height */
+    --customlogo-text-offset: 8em;   /* gap before the header text — widen for banner logos */
     --customlogo-header-text: "My Server";
 }
 ```
 
+`--customlogo-text-offset` defaults to the logo height, which suits roughly square logos. A wide
+banner logo is drawn wider than it is tall, so increase this until the text clears it.
+
 If you previously replaced the logos with a hand-written CSS block, delete the logo rules from it —
 otherwise the two fight over the same selectors. Keep any unrelated custom CSS as it is.
+
+## The catalog icon
+
+`manifest.json` carries an `imageUrl`. Jellyfin does **not** hand that URL straight to the browser
+for installed plugins. `PluginManager.PopulateManifest` downloads the image *server-side* while the
+plugin is being installed or updated, stores it next to the plugin, records it as `ImagePath` in the
+plugin's `meta.json`, and the web client then loads it from `/Plugins/{id}/{version}/Image`. Only for
+plugins that are not installed does the catalog use `imageUrl` directly.
+
+Two things follow from that:
+
+- **Adding or changing `imageUrl` has no effect on an already installed version.** The image is only
+  fetched during install/update, so the icon appears after the next version is installed.
+- **The filename matters.** Jellyfin derives it from the last URL segment, so the URL has to end in a
+  real file name (`.../static/logo.png`). A URL ending in a slash or a bare query string will not
+  produce a usable file.
+
+Any host works — `raw.githubusercontent.com` is fine and needs no CDN, since the server does the
+fetching.
 
 ## Working alongside other plugins
 

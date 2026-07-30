@@ -72,16 +72,6 @@
                         </div>
                     </div>
 
-                    <div class="checkboxContainer checkboxContainer-withDescription">
-                        <label class="emby-checkbox-label">
-                            <input id="ReplaceBrowserTitle" name="ReplaceBrowserTitle" type="checkbox" is="emby-checkbox" />
-                            <span>Browser tab title</span>
-                        </label>
-                        <div class="fieldDescription checkboxFieldDescription">
-                            Replaces the initial "Jellyfin" tab title with your header text. The web client rewrites
-                            the title as you navigate, so this mainly affects the initial load.
-                        </div>
-                    </div>
                 </div>
 
                 <div class="verticalSection">
@@ -137,7 +127,10 @@
                     <div class="inputContainer">
                         <label class="inputLabel inputLabelUnfocused" for="HeaderText">Header text</label>
                         <input id="HeaderText" name="HeaderText" type="text" is="emby-input" />
-                        <div class="fieldDescription">Shown next to the header logo, and used as the browser tab title.</div>
+                        <div class="fieldDescription">
+                            Shown next to the header logo. The browser tab title is not affected by this &mdash; that
+                            one comes from <b>Dashboard &rarr; General &rarr; Server name</b>.
+                        </div>
                     </div>
 
                     <div class="checkboxContainer">
@@ -300,7 +293,6 @@
                 el('ReplaceHeaderLogo').checked = config.ReplaceHeaderLogo;
                 el('ReplaceDrawerLogo').checked = config.ReplaceDrawerLogo;
                 el('ReplaceFavicon').checked = config.ReplaceFavicon;
-                el('ReplaceBrowserTitle').checked = config.ReplaceBrowserTitle;
 
                 el('LogoSource').value = config.LogoSource;
                 el('LogoUrl').value = config.LogoUrl || '';
@@ -412,7 +404,6 @@
                     config.ReplaceHeaderLogo = el('ReplaceHeaderLogo').checked;
                     config.ReplaceDrawerLogo = el('ReplaceDrawerLogo').checked;
                     config.ReplaceFavicon = el('ReplaceFavicon').checked;
-                    config.ReplaceBrowserTitle = el('ReplaceBrowserTitle').checked;
 
                     config.LogoSource = el('LogoSource').value;
                     config.LogoUrl = el('LogoUrl').value;

@@ -1,12 +1,11 @@
-<p align="center">
-  <img src="static/logo.png" width="128" alt="Custom Logo">
-</p>
-
 <h1 align="center">Jellyfin Custom Logo Plugin</h1>
 
 <p align="center">
 Replace the default Jellyfin branding with your own logo and header text. Configured entirely from
 the admin dashboard.
+</p>
+<p align="center">
+  <img src="static/logo.png" width="700" alt="Custom Logo">
 </p>
 
 ---
@@ -20,7 +19,6 @@ the admin dashboard.
 | Header text | Drawn next to the header logo, optionally hidden on narrow screens |
 | Admin drawer logo | `.adminDrawerLogo img` |
 | Favicon | Favicon, `apple-touch-icon` and tile icon |
-| Browser tab title | `<title>` and `<meta name="application-name">` |
 
 Each target can be switched on individually, or you can flip the whole plugin between **all logos**,
 **only the ones you select**, and **nothing at all**.
