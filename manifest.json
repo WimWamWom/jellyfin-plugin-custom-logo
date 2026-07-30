@@ -6,6 +6,7 @@
     "overview": "Replace the default Jellyfin branding with your own logo and header text.",
     "owner": "WimWamWom",
     "category": "General",
+    "imageUrl": "https://raw.githubusercontent.com/WimWamWom/jellyfin-plugin-custom-logo/master/static/logo.png",
     "versions": [
       {
         "version": "1.0.0.1",
