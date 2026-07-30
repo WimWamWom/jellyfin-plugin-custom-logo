@@ -74,7 +74,7 @@ Open **Custom Logo** in the dashboard's left-hand navigation, or go through
 | Individual logos | Splash, header, drawer and favicon toggles. Only consulted in `Only the logos I select` mode. |
 | Logo source | An external URL, or a file uploaded here (max 2 MB). |
 | Header text | Drawn next to the header logo. |
-| Appearance | Logo height, text colour, text size, text weight — all plain CSS values. |
+| Appearance | Logo height, text height, text colour, text weight — all plain CSS values. Logo and text height are independent; the text's width always follows its content. |
 | Favicon | Uses the main logo unless you tick "use a different image". |
 
 Settings apply on the next full page load — reload the web client with <kbd>Ctrl</kbd>+<kbd>F5</kbd>
@@ -118,10 +118,15 @@ The plugin exposes its values as custom properties, which is usually the tidiest
 ```css
 :root {
     --customlogo-size: 2.4em;        /* header logo height */
+    --customlogo-text-size: 1.5em;   /* header text height */
     --customlogo-text-offset: 8em;   /* gap before the header text — widen for banner logos */
     --customlogo-header-text: "My Server";
 }
 ```
+
+`--customlogo-text-size` is the header text height, set independently of the logo height — there is
+deliberately no fixed ratio between the two, since they are tuned by eye. The text's width is never
+set: the header box is `width: auto` and the text is `white-space: nowrap`, so it always grows to fit.
 
 `--customlogo-text-offset` defaults to the logo height, which suits roughly square logos. A wide
 banner logo is drawn wider than it is tall, so increase this until the text clears it.
@@ -220,16 +225,32 @@ assemblies are provided by the server at runtime.
 
 ## Releasing
 
-Push a tag and the release workflow does the rest:
+1. Add a section for the new version at the top of [CHANGELOG.md](CHANGELOG.md), using the same
+   four-part version you are about to tag:
 
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
+   ```markdown
+   ## 1.0.0.3
 
-It builds the plugin, publishes a GitHub release with the zip attached, then appends the version and
-its MD5 checksum to `manifest.json` and commits that back to `main`. Only after that does the
-repository URL actually offer something installable.
+   **Fixed**
+
+   - ...
+   ```
+
+2. Commit it, then tag and push:
+
+   ```bash
+   git tag v1.0.0.3
+   git push origin v1.0.0.3
+   ```
+
+The workflow builds the plugin, extracts that changelog section, publishes a GitHub release with the
+zip attached and the section as the release body, then appends the version, its MD5 checksum and the
+same changelog to `manifest.json` and commits that back to `main`. Only after that does the repository
+URL actually offer something installable.
+
+If no matching section exists the release still succeeds, but the changelog falls back to a bare
+`Release x.y.z.` stub and the job log carries a warning. Jellyfin renders the changelog as Markdown,
+so headings and lists work in the plugin catalog.
 
 Wait for the build workflow to go green before tagging — otherwise the release workflow fails on the
 same error and you end up with a tag and no release.

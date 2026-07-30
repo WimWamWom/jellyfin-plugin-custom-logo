@@ -128,7 +128,7 @@
                         <label class="inputLabel inputLabelUnfocused" for="HeaderText">Header text</label>
                         <input id="HeaderText" name="HeaderText" type="text" is="emby-input" />
                         <div class="fieldDescription">
-                            Shown next to the header logo. The browser tab title is not affected by this &mdash; that
+                            Shown next to the header logo. The browser tab title is not affected by this, that
                             one comes from <b>Dashboard &rarr; General &rarr; Server name</b>.
                         </div>
                     </div>
@@ -164,9 +164,12 @@
                     </div>
 
                     <div class="inputContainer">
-                        <label class="inputLabel inputLabelUnfocused" for="HeaderTextFontSize">Header text size</label>
+                        <label class="inputLabel inputLabelUnfocused" for="HeaderTextFontSize">Header text height</label>
                         <input id="HeaderTextFontSize" name="HeaderTextFontSize" type="text" is="emby-input" />
-                        <div class="fieldDescription">A CSS length, for example <code>1.1em</code>.</div>
+                        <div class="fieldDescription">
+                            A CSS length, for example <code>1.5em</code>. Set independently of the logo height;
+                            the width follows the text automatically.
+                        </div>
                     </div>
 
                     <div class="inputContainer">

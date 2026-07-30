@@ -72,10 +72,9 @@ public class PluginConfiguration : BasePluginConfiguration
         HeaderText = string.Empty;
         ShowHeaderText = true;
         HideHeaderTextOnMobile = true;
-        // Sized to sit comfortably inside the stock header row.
-        HeaderLogoSize = "1.8em";
+        HeaderLogoSize = "2.2em";
         HeaderTextColor = "#fff";
-        HeaderTextFontSize = "1.1em";
+        HeaderTextFontSize = "1.5em";
         HeaderTextFontWeight = "600";
     }
 
@@ -175,7 +174,8 @@ public class PluginConfiguration : BasePluginConfiguration
     public string HeaderTextColor { get; set; }
 
     /// <summary>
-    /// Gets or sets the header text size as a CSS length, for example <c>1.1em</c>.
+    /// Gets or sets the header text height as a CSS length, for example <c>1.5em</c>. Independent of
+    /// <see cref="HeaderLogoSize"/>; the text's width always follows its content.
     /// </summary>
     public string HeaderTextFontSize { get; set; }
 

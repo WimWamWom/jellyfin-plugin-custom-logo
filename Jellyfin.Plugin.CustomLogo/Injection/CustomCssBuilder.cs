@@ -26,6 +26,17 @@ internal static class CustomCssBuilder
     private const string TextOffset = "var(--customlogo-text-offset,var(--customlogo-size))";
 
     /// <summary>
+    /// Default header logo height.
+    /// </summary>
+    private const string DefaultLogoSize = "2.2em";
+
+    /// <summary>
+    /// Default header text height. Set independently of the logo height on purpose: the two are
+    /// tuned by eye, not by a fixed ratio. The text's width always follows its content.
+    /// </summary>
+    private const string DefaultTextSize = "1.5em";
+
+    /// <summary>
     /// Builds the stylesheet for the supplied configuration.
     /// </summary>
     /// <param name="config">The plugin configuration.</param>
@@ -45,10 +56,10 @@ internal static class CustomCssBuilder
             return string.Empty;
         }
 
-        var logoSize = SanitizeCssValue(config.HeaderLogoSize, "1.8em");
+        var logoSize = SanitizeCssValue(config.HeaderLogoSize, DefaultLogoSize);
         var textColor = SanitizeCssValue(config.HeaderTextColor, "#fff");
-        var textSize = SanitizeCssValue(config.HeaderTextFontSize, "1.1em");
         var textWeight = SanitizeCssValue(config.HeaderTextFontWeight, "600");
+        var textSize = SanitizeCssValue(config.HeaderTextFontSize, DefaultTextSize);
 
         var sb = new StringBuilder(1024);
 
@@ -61,7 +72,8 @@ internal static class CustomCssBuilder
 
         if (headerText)
         {
-            sb.Append("--customlogo-header-text:\"").Append(EscapeCssString(config.HeaderText)).Append("\";");
+            sb.Append("--customlogo-header-text:\"").Append(EscapeCssString(config.HeaderText)).Append("\";")
+              .Append("--customlogo-text-size:").Append(textSize).Append(';');
         }
 
         sb.Append("--customlogo-size:").Append(logoSize).Append(";}");
@@ -109,7 +121,8 @@ internal static class CustomCssBuilder
                 sb.Append(HeaderSelector).Append("::after{")
                   .Append("content:var(--customlogo-header-text);")
                   .Append("color:").Append(textColor).Append(';')
-                  .Append("font-size:").Append(textSize).Append(';')
+                  .Append("font-size:var(--customlogo-text-size);")
+                  .Append("line-height:1;")
                   .Append("font-weight:").Append(textWeight).Append(';')
                   .Append("white-space:nowrap;}");
             }

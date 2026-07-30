@@ -90,13 +90,53 @@ jobs:
           echo "checksum=${CHECKSUM}" >> "$GITHUB_OUTPUT"
           echo "Built ${ZIP} with checksum ${CHECKSUM}"
 
+      - name: Extract changelog
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          # Pulls the section for this version out of CHANGELOG.md and writes it to
+          # RELEASE_NOTES.md, which is then used both as the GitHub release body and as the
+          # changelog in manifest.json. Falls back to a stub so a release never fails over this.
+          python3 - <<'PY'
+          import os
+          import pathlib
+          import re
+
+          version = os.environ['VERSION']
+          tag = os.environ['TAG'].lstrip('v')
+          notes = ''
+
+          source = pathlib.Path('CHANGELOG.md')
+          if source.exists():
+              text = source.read_text(encoding='utf-8')
+              # Accept both the padded four part version and the tag as written.
+              for wanted in dict.fromkeys([version, tag]):
+                  # (?![\d.]) stops a short version matching a longer heading, so looking for
+                  # 1.0.0 does not accidentally pick up "## 1.0.0.3".
+                  pattern = re.compile(
+                      r'^##\s*\[?' + re.escape(wanted) + r'\]?(?![\d.])[^\n]*\n(.*?)(?=^##\s|\Z)',
+                      re.MULTILINE | re.DOTALL)
+                  match = pattern.search(text)
+                  if match:
+                      notes = match.group(1).strip()
+                      break
+
+          if not notes:
+              notes = f'Release {version}.'
+              print(f'::warning::No CHANGELOG.md section found for {version}; using a stub.')
+
+          pathlib.Path('RELEASE_NOTES.md').write_text(notes + '\n', encoding='utf-8')
+          print(notes)
+          PY
+
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           name: ${{ steps.version.outputs.tag }}
           files: artifacts/${{ steps.package.outputs.zip }}
-          generate_release_notes: true
+          body_path: RELEASE_NOTES.md
 
       - name: Update manifest.json
         env:
@@ -109,6 +149,7 @@ jobs:
           python3 - <<'PY'
           import json
           import os
+          import pathlib
           from datetime import datetime, timezone
 
           version = os.environ['VERSION']
@@ -117,12 +158,15 @@ jobs:
               f"{os.environ['TAG']}/{os.environ['ZIP']}"
           )
 
+          # Written by the "Extract changelog" step. Jellyfin renders this as Markdown.
+          changelog = pathlib.Path('RELEASE_NOTES.md').read_text(encoding='utf-8').strip()
+
           with open('manifest.json', encoding='utf-8') as handle:
               manifest = json.load(handle)
 
           entry = {
               'version': version,
-              'changelog': f'Release {version}.',
+              'changelog': changelog,
               'targetAbi': '10.11.0.0',
               'sourceUrl': source,
               'checksum': os.environ['CHECKSUM'],
