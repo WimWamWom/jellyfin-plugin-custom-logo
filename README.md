@@ -14,7 +14,7 @@ the admin dashboard.
 
 | Target | Element |
 | --- | --- |
-| Splash / loading logo | `.splashLogo` — the large logo shown while the web client boots |
+| Splash / loading logo | `.splashLogo`: the large logo shown while the web client boots |
 | Header logo | `.pageTitleWithDefaultLogo`, including the TV layout |
 | Header text | Drawn next to the header logo, optionally hidden on narrow screens |
 | Admin drawer logo | `.adminDrawerLogo img` |
@@ -45,7 +45,7 @@ Each target can be switched on individually, or you can flip the whole plugin be
 ## Configuration
 
 Open **Custom Logo** in the dashboard's left-hand navigation, set a logo (URL or upload) and a header
-text, and save. Changes apply on the next full page load — reload with <kbd>Ctrl</kbd>+<kbd>F5</kbd>
+text, and save. Changes apply on the next full page load. Reload with <kbd>Ctrl</kbd>+<kbd>F5</kbd>
 (<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> on macOS).
 
 Freshly installed, the plugin does nothing until you give it a logo or header text.
@@ -56,7 +56,7 @@ Jellyfin **10.11.x**.
 
 ---
 
-📖 **[Full documentation](DOCUMENTATION.md)** — how the injection works, every setting explained,
+📖 **[Full documentation](DOCUMENTATION.md)**: how the injection works, every setting explained,
 using it alongside your own custom CSS and other plugins, security, building and releasing.
 
 ## License

@@ -154,7 +154,10 @@
                     <div class="inputContainer">
                         <label class="inputLabel inputLabelUnfocused" for="HeaderLogoSize">Header logo height</label>
                         <input id="HeaderLogoSize" name="HeaderLogoSize" type="text" is="emby-input" />
-                        <div class="fieldDescription">A CSS length, for example <code>2.2em</code>.</div>
+                        <div class="fieldDescription">
+                            A CSS length, for example <code>2em</code>. A plain number is treated as
+                            <code>em</code>.
+                        </div>
                     </div>
 
                     <div class="inputContainer">
@@ -167,15 +170,18 @@
                         <label class="inputLabel inputLabelUnfocused" for="HeaderTextFontSize">Header text height</label>
                         <input id="HeaderTextFontSize" name="HeaderTextFontSize" type="text" is="emby-input" />
                         <div class="fieldDescription">
-                            A CSS length, for example <code>1.5em</code>. Set independently of the logo height;
-                            the width follows the text automatically.
+                            A CSS length, for example <code>1.8em</code>. A plain number is treated as
+                            <code>em</code>. Set independently of the logo height; the width follows the text
+                            automatically.
                         </div>
                     </div>
 
                     <div class="inputContainer">
                         <label class="inputLabel inputLabelUnfocused" for="HeaderTextFontWeight">Header text weight</label>
                         <input id="HeaderTextFontWeight" name="HeaderTextFontWeight" type="text" is="emby-input" />
-                        <div class="fieldDescription">A CSS font weight, for example <code>600</code>.</div>
+                        <div class="fieldDescription">
+                            A CSS font weight. <code>400</code> is normal, <code>600</code> semi-bold.
+                        </div>
                     </div>
                 </div>
 

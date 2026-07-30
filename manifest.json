@@ -10,7 +10,7 @@
     "versions": [
       {
         "version": "1.0.0.3",
-        "changelog": "**Changed**\n\n- Larger defaults, so the header fits without tweaking: logo height `2.2em` (was `1.8em`) and text\n  height `1.5em` (was `1.1em`). Settings you have already saved are left untouched.\n- **Header text size** is now labelled **Header text height** and states that it is set independently\n  of the logo height. Its width follows the text automatically, as before.\n\n**Added**\n\n- `--customlogo-text-size` custom property, so the header text height can also be overridden from your\n  own custom CSS.\n\n**Fixed**\n\n- The header text is now centred properly next to the logo \u2014 its line height no longer nudges it off\n  centre.",
+        "changelog": "**Changed**\n\n- Larger defaults, so the header fits without tweaking: logo height `2.2em` (was `1.8em`) and text\n  height `1.5em` (was `1.1em`). Settings you have already saved are left untouched.\n- **Header text size** is now labelled **Header text height** and states that it is set independently\n  of the logo height. Its width follows the text automatically, as before.\n\n**Added**\n\n- `--customlogo-text-size` custom property, so the header text height can also be overridden from your\n  own custom CSS.\n\n**Fixed**\n\n- The header text is now centred properly next to the logo; its line height no longer nudges it off\n  centre.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/WimWamWom/jellyfin-plugin-custom-logo/releases/download/v1.0.0.3/custom-logo_1.0.0.3.zip",
         "checksum": "0474df34395fe360e8a0a780629efea5",

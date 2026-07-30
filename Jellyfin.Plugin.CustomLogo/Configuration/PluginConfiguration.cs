@@ -72,10 +72,10 @@ public class PluginConfiguration : BasePluginConfiguration
         HeaderText = string.Empty;
         ShowHeaderText = true;
         HideHeaderTextOnMobile = true;
-        HeaderLogoSize = "2.2em";
+        HeaderLogoSize = "2em";
         HeaderTextColor = "#fff";
-        HeaderTextFontSize = "1.5em";
-        HeaderTextFontWeight = "600";
+        HeaderTextFontSize = "1.8em";
+        HeaderTextFontWeight = "400";
     }
 
     /// <summary>

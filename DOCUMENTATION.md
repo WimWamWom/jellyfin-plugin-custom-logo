@@ -1,4 +1,4 @@
-# Custom Logo — Documentation
+# Custom Logo Documentation
 
 Detailed documentation for the [Jellyfin Custom Logo Plugin](README.md).
 
@@ -27,7 +27,7 @@ ever sees it:
    during the host's `ConfigureServices`, so the registration lands in the same container ASP.NET
    Core later reads startup filters from.
 2. ASP.NET Core applies that filter around `Startup.Configure`, which places `CustomLogoMiddleware`
-   at the very front of the request pipeline — ahead of `UseStaticFiles`, which is what normally
+   at the very front of the request pipeline, ahead of `UseStaticFiles`, which is what normally
    serves `index.html` off disk.
 3. For `GET /web/` and `GET /web/index.html`, the middleware buffers the response, lets the rest of
    the pipeline produce the page, and only then injects a `<style>` block as the last element in
@@ -43,7 +43,7 @@ Three consequences worth knowing:
   holds the branded copy in memory only.
 - **No third-party plugin is required.** The community [File Transformation][filetransformation]
   plugin solves a similar problem, but it is a separate install and registers callbacks by
-  reflection. Jellyfin 10.11 has no native web-file transformation API of its own — `IStartupFilter`
+  reflection. Jellyfin 10.11 has no native web-file transformation API of its own. `IStartupFilter`
   is a stock ASP.NET Core extension point that happens to be reachable from a Jellyfin plugin.
 - **Uploads are inlined.** Uploaded images are embedded as `data:` URIs rather than served from a
   plugin endpoint. That removes an extra HTTP round trip, which matters here: an image still being
@@ -74,10 +74,10 @@ Open **Custom Logo** in the dashboard's left-hand navigation, or go through
 | Individual logos | Splash, header, drawer and favicon toggles. Only consulted in `Only the logos I select` mode. |
 | Logo source | An external URL, or a file uploaded here (max 2 MB). |
 | Header text | Drawn next to the header logo. |
-| Appearance | Logo height, text height, text colour, text weight — all plain CSS values. Logo and text height are independent; the text's width always follows its content. |
+| Appearance | Logo height, text height, text colour, text weight: all plain CSS values. Logo and text height are independent; the text's width always follows its content. |
 | Favicon | Uses the main logo unless you tick "use a different image". |
 
-Settings apply on the next full page load — reload the web client with <kbd>Ctrl</kbd>+<kbd>F5</kbd>
+Settings apply on the next full page load. Reload the web client with <kbd>Ctrl</kbd>+<kbd>F5</kbd>
 (<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> on macOS).
 
 A logo URL is loaded by the **browser**, not by the server, so it has to be reachable from your
@@ -89,7 +89,7 @@ instead.
 - **The browser tab title is out of scope.** It is not driven by the HTML: `libraryMenu.js` overwrites
   `document.title` with `ServerName` as soon as the client boots, which server-side is
   `ConfigurationManager.Configuration.ServerName`. Set it under
-  **Dashboard → General → Server name** — Jellyfin already handles this, so the plugin does not touch
+  **Dashboard → General → Server name**. Jellyfin already handles this, so the plugin does not touch
   it.
 - **Header text placement.** The header logo and text only appear on pages without their own title.
   Jellyfin's `setTitle()` removes the logo classes and writes the page title instead, so on most
@@ -103,7 +103,7 @@ The plugin marks exactly one thing `!important`: the `background-image` on
 `.pageTitleWithDefaultLogo`. That one has to be forced, because Jellyfin's themes are applied after
 the page loads and every stock theme sets a logo on precisely that selector.
 
-Everything else is plain, unforced CSS — but the header rules are written as
+Everything else is plain, unforced CSS, but the header rules are written as
 `.pageTitleWithDefaultLogo.pageTitleWithLogo`, using two classes on purpose. jellyfin-web always
 applies both together, and the two-class specificity beats the web client's own `.pageTitle` (which
 sets `height: 1.7em`) and `.pageTitleWithLogo` (which sets `width: 13.2em`) regardless of stylesheet
@@ -117,21 +117,21 @@ The plugin exposes its values as custom properties, which is usually the tidiest
 
 ```css
 :root {
-    --customlogo-size: 2.4em;        /* header logo height */
-    --customlogo-text-size: 1.5em;   /* header text height */
-    --customlogo-text-offset: 8em;   /* gap before the header text — widen for banner logos */
+    --customlogo-size: 2em;          /* header logo height */
+    --customlogo-text-size: 1.8em;   /* header text height */
+    --customlogo-text-offset: 8em;   /* gap before the header text, widen for banner logos */
     --customlogo-header-text: "My Server";
 }
 ```
 
-`--customlogo-text-size` is the header text height, set independently of the logo height — there is
+`--customlogo-text-size` is the header text height, set independently of the logo height. There is
 deliberately no fixed ratio between the two, since they are tuned by eye. The text's width is never
 set: the header box is `width: auto` and the text is `white-space: nowrap`, so it always grows to fit.
 
 `--customlogo-text-offset` defaults to the logo height, which suits roughly square logos. A wide
 banner logo is drawn wider than it is tall, so increase this until the text clears it.
 
-If you previously replaced the logos with a hand-written CSS block, delete the logo rules from it —
+If you previously replaced the logos with a hand-written CSS block, delete the logo rules from it;
 otherwise the two fight over the same selectors. Keep any unrelated custom CSS as it is.
 
 ## The catalog icon
@@ -150,13 +150,13 @@ Two things follow from that:
   real file name (`.../static/logo.png`). A URL ending in a slash or a bare query string will not
   produce a usable file.
 
-Any host works — `raw.githubusercontent.com` is fine and needs no CDN, since the server does the
+Any host works: `raw.githubusercontent.com` is fine and needs no CDN, since the server does the
 fetching.
 
 ## Working alongside other plugins
 
-Buffering rather than short-circuiting is deliberate. [File Transformation][filetransformation] —
-which [Media Bar][mediabar] and Home Screen Sections build on — replaces the static file provider so
+Buffering rather than short-circuiting is deliberate. [File Transformation][filetransformation],
+which [Media Bar][mediabar] and Home Screen Sections build on, replaces the static file provider so
 that `index.html` is rewritten as it is read. Serving our own copy straight from disk would silently
 discard all of that and break those plugins. Instead this plugin brands whatever the pipeline hands
 it, on top of everyone else's changes.
@@ -185,13 +185,13 @@ Every administrator-supplied value is escaped before it reaches the page:
   their defaults if they contain anything that could terminate a declaration.
 - Values going into HTML attributes are HTML-encoded.
 
-Upload and delete endpoints require the `RequiresElevation` policy — the same privilege level as the
+Upload and delete endpoints require the `RequiresElevation` policy, the same privilege level as the
 rest of the dashboard.
 
 ## Compatibility
 
 Built against the **Jellyfin 10.11** plugin ABI (`targetAbi 10.11.0.0`, .NET 9). The project
-references `Jellyfin.Controller` / `Jellyfin.Model` 10.11.0 — the lowest 10.11 patch — so the
+references `Jellyfin.Controller` / `Jellyfin.Model` 10.11.0, the lowest 10.11 patch, so the
 assembly stays loadable across the whole 10.11.x line.
 
 **On Jellyfin 12.0.0 (in development):** expect this to need work before it loads. Jellyfin enforces
@@ -206,7 +206,7 @@ parts most likely to actually break:
 - If 12.0.0 introduces a native web-file transformation service, prefer it over the `IStartupFilter`
   approach.
 
-This is deliberately built only against stable 10.11 APIs — nothing here depends on pre-release
+This is deliberately built only against stable 10.11 APIs. Nothing here depends on pre-release
 Jellyfin code.
 
 ## Building
@@ -220,13 +220,13 @@ dotnet build Jellyfin.Plugin.CustomLogo.sln --configuration Release
 The plugin assembly lands in `Jellyfin.Plugin.CustomLogo/bin/Release/net9.0/`. Copy
 `Jellyfin.Plugin.CustomLogo.dll` into a folder under your server's `plugins/` directory and restart.
 
-Only `Jellyfin.Plugin.CustomLogo.dll` ships in the release zip — the Jellyfin and ASP.NET Core
+Only `Jellyfin.Plugin.CustomLogo.dll` ships in the release zip: the Jellyfin and ASP.NET Core
 assemblies are provided by the server at runtime.
 
 ## Releasing
 
 Changelog entries are shown to users inside Jellyfin, so keep them to what changes about the plugin
-itself. Repository and build changes — workflows, packaging, documentation — belong in the commit
+itself. Repository and build changes (workflows, packaging, documentation) belong in the commit
 history rather than in the catalog.
 
 1. Add a section for the new version at the top of [CHANGELOG.md](CHANGELOG.md), using the same
@@ -256,7 +256,7 @@ If no matching section exists the release still succeeds, but the changelog fall
 `Release x.y.z.` stub and the job log carries a warning. Jellyfin renders the changelog as Markdown,
 so headings and lists work in the plugin catalog.
 
-Wait for the build workflow to go green before tagging — otherwise the release workflow fails on the
+Wait for the build workflow to go green before tagging; otherwise the release workflow fails on the
 same error and you end up with a tag and no release.
 
 [startupfilter]: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/startup#extend-startup-with-startup-filters

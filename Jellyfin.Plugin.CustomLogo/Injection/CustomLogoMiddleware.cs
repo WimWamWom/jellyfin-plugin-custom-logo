@@ -18,8 +18,8 @@ namespace Jellyfin.Plugin.CustomLogo.Injection;
 /// Registered ahead of Jellyfin's pipeline (see <see cref="CustomLogoStartupFilter"/>), this
 /// middleware buffers the response for <c>index.html</c>, lets the rest of the pipeline produce it,
 /// and only then applies the branding. It deliberately does <b>not</b> short-circuit and serve its
-/// own copy: other plugins modify the same file further down. File Transformation — which the Media
-/// Bar and Home Screen Sections plugins depend on — swaps the static file provider so that
+/// own copy: other plugins modify the same file further down. File Transformation, which the Media
+/// Bar and Home Screen Sections plugins depend on, swaps the static file provider so that
 /// <c>index.html</c> is rewritten as it is read. Answering early would throw all of that away.
 /// </para>
 /// <para>

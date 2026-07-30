@@ -28,13 +28,18 @@ internal static class CustomCssBuilder
     /// <summary>
     /// Default header logo height.
     /// </summary>
-    private const string DefaultLogoSize = "2.2em";
+    private const string DefaultLogoSize = "2em";
 
     /// <summary>
     /// Default header text height. Set independently of the logo height on purpose: the two are
     /// tuned by eye, not by a fixed ratio. The text's width always follows its content.
     /// </summary>
-    private const string DefaultTextSize = "1.5em";
+    private const string DefaultTextSize = "1.8em";
+
+    /// <summary>
+    /// Default header text weight. Normal rather than semi-bold, which reads as heavy at these sizes.
+    /// </summary>
+    private const string DefaultTextWeight = "400";
 
     /// <summary>
     /// Builds the stylesheet for the supplied configuration.
@@ -56,10 +61,10 @@ internal static class CustomCssBuilder
             return string.Empty;
         }
 
-        var logoSize = SanitizeCssValue(config.HeaderLogoSize, DefaultLogoSize);
+        var logoSize = SanitizeCssLength(config.HeaderLogoSize, DefaultLogoSize);
+        var textSize = SanitizeCssLength(config.HeaderTextFontSize, DefaultTextSize);
         var textColor = SanitizeCssValue(config.HeaderTextColor, "#fff");
-        var textWeight = SanitizeCssValue(config.HeaderTextFontWeight, "600");
-        var textSize = SanitizeCssValue(config.HeaderTextFontSize, DefaultTextSize);
+        var textWeight = SanitizeCssValue(config.HeaderTextFontWeight, DefaultTextWeight);
 
         var sb = new StringBuilder(1024);
 
@@ -186,6 +191,53 @@ internal static class CustomCssBuilder
         }
 
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Validates a CSS length, treating a value with no unit as <c>em</c>.
+    /// </summary>
+    /// <remarks>
+    /// Administrators reasonably think of these settings as plain numbers and type "2" rather than
+    /// "2em". A unitless number is not a valid length, so the browser would drop the whole
+    /// declaration and the setting would appear to do nothing. Assuming <c>em</c> keeps that from
+    /// being a silent failure.
+    /// </remarks>
+    /// <param name="value">The configured value.</param>
+    /// <param name="fallback">The value to use when <paramref name="value"/> is unusable.</param>
+    /// <returns>A safe CSS length.</returns>
+    private static string SanitizeCssLength(string? value, string fallback)
+    {
+        var sanitized = SanitizeCssValue(value, fallback);
+        return IsUnitlessNumber(sanitized) ? sanitized + "em" : sanitized;
+    }
+
+    /// <summary>
+    /// Determines whether a value is a plain number with no unit attached.
+    /// </summary>
+    /// <param name="value">The value to test.</param>
+    /// <returns><c>true</c> when the value consists only of digits and at most one decimal point.</returns>
+    private static bool IsUnitlessNumber(string value)
+    {
+        var seenDigit = false;
+        var seenDot = false;
+
+        foreach (var c in value)
+        {
+            if (char.IsAsciiDigit(c))
+            {
+                seenDigit = true;
+            }
+            else if (c == '.' && !seenDot)
+            {
+                seenDot = true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        return seenDigit;
     }
 
     /// <summary>

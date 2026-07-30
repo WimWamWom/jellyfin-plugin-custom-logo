@@ -3,9 +3,23 @@
 Changes to the plugin, as users experience them. Heading format: `## 1.0.0.3`, matching the tag
 `v1.0.0.3`. See [DOCUMENTATION.md](DOCUMENTATION.md#releasing) for how this file is published.
 
-> Entries describe the plugin only — what changes for someone running it. Repository and build
+> Entries describe the plugin only: what changes for someone running it. Repository and build
 > details (workflows, packaging, docs) belong in the commit history, not here: these sections are
 > shown to users inside Jellyfin.
+
+## 1.0.0.4
+
+**Changed**
+
+- The header text is no longer semi-bold. It looked heavy and blocky next to the logo, so the default
+  weight is now normal (`400`); `600` is still available in the text weight field.
+- New default sizes: logo height `2em`, text height `1.8em`. Settings you have already saved are left
+  untouched.
+
+**Fixed**
+
+- Size fields now accept a plain number and read it as `em`. Previously a value like `2` was not a
+  valid CSS length, so the browser discarded it and the setting silently did nothing.
 
 ## 1.0.0.3
 
@@ -23,7 +37,7 @@ Changes to the plugin, as users experience them. Heading format: `## 1.0.0.3`, m
 
 **Fixed**
 
-- The header text is now centred properly next to the logo — its line height no longer nudges it off
+- The header text is now centred properly next to the logo; its line height no longer nudges it off
   centre.
 
 ## 1.0.0.2
