@@ -12,14 +12,17 @@
 
   <ItemGroup>
     <!--
-      Pinned to 12.0.0, the Jellyfin 12.0 ABI. Jellyfin 12.0 runs on .NET 10. This line is not
+      Jellyfin 12.0 runs on .NET 10, ABI 12.0.0.0. nuget.org has no plain 12.0.0 package yet, only
+      prereleases; pinned to 12.0.0-rcrc3, the latest one at the time of writing. Re-pin to the
+      plain 12.0.0 the moment that exists, since a prerelease pin is a moving target: an older RC
+      package can be unlisted once a newer one, or the stable release, ships. This line is not
       loadable by Jellyfin 10.11.x servers: their assemblies are versioned 10.11.0.0, and the
       plugin loader falls back to whatever the server itself provides for these two packages.
     -->
-    <PackageReference Include="Jellyfin.Controller" Version="12.0.0">
+    <PackageReference Include="Jellyfin.Controller" Version="12.0.0-rcrc3">
       <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
-    <PackageReference Include="Jellyfin.Model" Version="12.0.0">
+    <PackageReference Include="Jellyfin.Model" Version="12.0.0-rcrc3">
       <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
   </ItemGroup>

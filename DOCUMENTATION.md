@@ -197,12 +197,19 @@ rest of the dashboard.
 
 ## Compatibility
 
-Built against the **Jellyfin 12.0** plugin ABI (`targetAbi 12.0.0.0`, .NET 10). The project
-references `Jellyfin.Controller` / `Jellyfin.Model` 12.0.0. This is a hard cutover: a build against
-12.0.0 does not load on a 10.11.x server, because the referenced assemblies are versioned 12.0.0.0
-there and the plugin loader falls back to whatever the server itself ships for these two packages.
-10.11.x users should stay on the last `1.0.0.x` release; it remains available from the manifest and
-from GitHub releases.
+Built against the **Jellyfin 12.0** plugin ABI (`targetAbi 12.0.0.0`, .NET 10). This is a hard
+cutover: a build against 12.0.0 does not load on a 10.11.x server, because the referenced
+assemblies are versioned 12.0.0.0 there and the plugin loader falls back to whatever the server
+itself ships for these two packages. 10.11.x users should stay on the last `1.0.0.x` release; it
+remains available from the manifest and from GitHub releases.
+
+nuget.org has no plain `12.0.0` package for `Jellyfin.Controller` / `Jellyfin.Model` yet, only
+release candidates, so the project is pinned to `12.0.0-rcrc3`, the latest one at the time of
+writing. Re-pin to the plain `12.0.0` the moment nuget.org has one: a prerelease pin is a moving
+target, since an older RC package can be unlisted once a newer one, or the stable release, ships.
+The assembly's own reported ABI is unaffected either way — `AssemblyVersion("12.0.0")` is identical
+across every 12.0 candidate checked, prerelease package version and runtime ABI are unrelated
+numbers.
 
 Checked against three Jellyfin 12.0.0 release candidates (server and `jellyfin-web`, all three
 byte-identical for everything this plugin touches) plus `jellyfin/master` and `jellyfin-web/master`
@@ -249,8 +256,10 @@ without collapsing the ambient font-size the icon's own sizing depends on. A lon
 name therefore leaves a gap before the replacement header text in the Modern layout. The classic
 header does not have this limitation.
 
-Released builds are compiled only against stable APIs. Nothing here depends on pre-release Jellyfin
-code.
+Released builds through 1.0.0.5 were compiled only against stable Jellyfin APIs. This one is not:
+see the nuget.org note above. Nothing here depends on pre-release *behaviour*, though — every
+finding in this section was checked against release candidates that turned out byte-identical for
+everything the plugin touches, not against a moving target.
 
 ## Building
 
