@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/WimWamWom/jellyfin-plugin-custom-logo/main/static/logo.png",
     "versions": [
       {
+        "version": "1.0.0.6",
+        "changelog": "**Added**\n\n- Header logo and text are now also replaced in the default (\"Modern\") layout's toolbar. Previously\n  only the TV layout and the legacy desktop/mobile layouts were covered, because the classic header\n  they use is present but hidden behind the new default layout.\n\n**Changed**\n\n- Now targets Jellyfin 12.0 (`net10.0`, plugin ABI `12.0.0.0`). This is a hard cutover: this version\n  no longer loads on Jellyfin 10.11.x. If you are still on 10.11, stay on 1.0.0.5.\n\n**Fixed**\n\n- The logo and favicon preview images on the configuration page loaded a broken-image icon instead of\n  the upload, because Jellyfin 12 rejects the query parameter they used to authenticate.",
+        "targetAbi": "12.0.0.0",
+        "sourceUrl": "https://github.com/WimWamWom/jellyfin-plugin-custom-logo/releases/download/v1.0.0.6/custom-logo_1.0.0.6.zip",
+        "checksum": "8cfdf6524adac9888dc4f271470112e4",
+        "timestamp": "2026-07-31T10:15:56Z"
+      },
+      {
         "version": "1.0.0.5",
         "changelog": "**Changed**\n\n- Clearing an appearance field now hands that detail back to Jellyfin instead of applying a value\n  chosen by the plugin, and every field says so. Empty the logo height and the header keeps Jellyfin's\n  own height; empty the text colour and it keeps Jellyfin's colour. Clear the logo itself and the\n  plugin stays out of the page entirely.\n\n**Fixed**\n\n- A failure while applying the branding can no longer stop the web client from loading. The page is\n  served unbranded instead and the error is written to the server log.\n- Requests other than the web client page are now dismissed by a plain path check. Every request,\n  including media streaming, previously read the network configuration first.",
         "targetAbi": "10.11.0.0",
