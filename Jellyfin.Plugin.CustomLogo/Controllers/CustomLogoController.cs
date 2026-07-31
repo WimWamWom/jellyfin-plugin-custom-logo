@@ -22,7 +22,7 @@ namespace Jellyfin.Plugin.CustomLogo.Controllers;
 [ApiController]
 [Authorize(Policy = Policies.RequiresElevation)]
 [Route("CustomLogo")]
-public class CustomLogoController : ControllerBase
+public partial class CustomLogoController : ControllerBase
 {
     private readonly ILogger<CustomLogoController> _logger;
 
@@ -34,6 +34,15 @@ public class CustomLogoController : ControllerBase
     {
         _logger = logger;
     }
+
+    // Source-generated: the slot argument is boxed to pass through the ad-hoc ILogger.LogInformation
+    // overload, which CA1873 flags regardless of how cheap the value actually is to evaluate.
+    // LoggerMessage sidesteps that by generating a strongly typed method with no boxing.
+    [LoggerMessage(Level = LogLevel.Information, Message = "Stored uploaded branding image for slot {Slot}")]
+    private partial void LogImageStored(BrandingImageSlot slot);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Cleared stored branding image for slot {Slot}")]
+    private partial void LogImageCleared(BrandingImageSlot slot);
 
     /// <summary>
     /// Uploads a branding image.
@@ -96,7 +105,7 @@ public class CustomLogoController : ControllerBase
         }
 
         plugin.UpdateConfiguration(config);
-        _logger.LogInformation("Stored uploaded branding image for slot {Slot}", slot);
+        LogImageStored(slot);
 
         return NoContent();
     }
@@ -175,7 +184,7 @@ public class CustomLogoController : ControllerBase
         }
 
         plugin.UpdateConfiguration(config);
-        _logger.LogInformation("Cleared stored branding image for slot {Slot}", slot);
+        LogImageCleared(slot);
 
         return NoContent();
     }
