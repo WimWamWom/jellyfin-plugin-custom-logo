@@ -298,8 +298,10 @@
                 }
 
                 status.textContent = 'Uploaded: ' + fileName;
+                // Jellyfin 12 rejects the lowercase api_key query parameter unless legacy
+                // authorization is explicitly re-enabled; ApiKey is accepted unconditionally.
                 img.src = ApiClient.getUrl('CustomLogo/Image/' + slot, {
-                    api_key: ApiClient.accessToken(),
+                    ApiKey: ApiClient.accessToken(),
                     t: Date.now()
                 });
                 img.style.display = '';

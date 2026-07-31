@@ -27,6 +27,23 @@ internal static class CustomCssBuilder
     private const string TextOffset = "var(--customlogo-text-offset,var(--customlogo-size,1.7em))";
 
     /// <summary>
+    /// Selector for the logo image inside jellyfin-web 12's React/MUI toolbar button. That button
+    /// replaces <see cref="HeaderSelector"/> as the visible header whenever the web client's default
+    /// layout ("Modern") is active or a dashboard page is open; <see cref="HeaderSelector"/> itself is
+    /// then present but hidden. The button carries no Jellyfin-specific class, so this targets MUI's
+    /// own stable global class name instead. It cannot match anything else: across the whole web
+    /// client, the server logo is the only place that passes a literal &lt;img&gt; as a button's start
+    /// icon, everywhere else passes an SVG icon component.
+    /// </summary>
+    private const string ModernHeaderIconSelector = ".MuiButton-startIcon img";
+
+    /// <summary>
+    /// Selector for the button element itself, used to hide its own text before <c>::after</c> can
+    /// supply a replacement. See <see cref="ModernHeaderIconSelector"/>.
+    /// </summary>
+    private const string ModernHeaderButtonSelector = ".MuiButton-root:has(.MuiButton-startIcon img)";
+
+    /// <summary>
     /// Builds the stylesheet for the supplied configuration.
     /// </summary>
     /// <param name="config">The plugin configuration.</param>
@@ -148,7 +165,36 @@ internal static class CustomCssBuilder
 
             if (hasLogo)
             {
-                sb.Append(".layout-tv .pageTitleWithDefaultLogo{background-image:var(--customlogo-image)!important;}");
+                sb.Append(".layout-tv .pageTitleWithDefaultLogo{background-image:var(--customlogo-image)!important;}")
+                  .Append(ModernHeaderIconSelector).Append("{content:var(--customlogo-image)!important;}");
+            }
+
+            if (headerText)
+            {
+                // The button's own text is a bare text node next to the icon, with no element around
+                // it to select. Making the whole button transparent hides that text without touching
+                // font-size, which the icon's own inline sizing (set by jellyfin-web) is relative to.
+                // The ::after content then supplies the replacement text with its own explicit colour,
+                // since it would otherwise inherit the transparent one. The original text still
+                // reserves its layout width, so a long configured server name leaves a gap before the
+                // replacement text; there is no CSS way to collapse a bare text node's width without
+                // also collapsing font-size, which the icon depends on.
+                sb.Append(ModernHeaderButtonSelector).Append("{color:transparent!important;}")
+                  .Append(ModernHeaderButtonSelector).Append("::after{")
+                  .Append("content:var(--customlogo-header-text);")
+                  .Append("color:").Append(textColor ?? "#fff").Append(';');
+
+                if (textSize is not null)
+                {
+                    sb.Append("font-size:var(--customlogo-text-size);");
+                }
+
+                if (textWeight is not null)
+                {
+                    sb.Append("font-weight:").Append(textWeight).Append(';');
+                }
+
+                sb.Append('}');
             }
 
             if (headerText && config.HideHeaderTextOnMobile)
@@ -157,6 +203,7 @@ internal static class CustomCssBuilder
                 sb.Append("@media (max-width:50em){")
                   .Append(HeaderSelector).Append("{padding-left:").Append(TextOffset).Append(";}")
                   .Append(HeaderSelector).Append("::after{display:none;}")
+                  .Append(ModernHeaderButtonSelector).Append("::after{display:none;}")
                   .Append('}');
             }
         }

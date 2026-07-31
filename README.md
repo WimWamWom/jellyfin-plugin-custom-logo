@@ -15,7 +15,7 @@ the admin dashboard.
 | Target | Element |
 | --- | --- |
 | Splash / loading logo | `.splashLogo`: the large logo shown while the web client boots |
-| Header logo | `.pageTitleWithDefaultLogo`, including the TV layout |
+| Header logo | `.pageTitleWithDefaultLogo` (TV and legacy desktop/mobile layouts) and the toolbar logo in the default layout |
 | Header text | Drawn next to the header logo, optionally hidden on narrow screens |
 | Admin drawer logo | `.adminDrawerLogo img` |
 | Favicon | Favicon, `apple-touch-icon` and tile icon |
@@ -52,7 +52,7 @@ Freshly installed, the plugin does nothing until you give it a logo or header te
 
 ## Requirements
 
-Jellyfin **10.11.x**.
+Jellyfin **12.0.0** or later. 10.11.x users should stay on the last `1.0.0.x` release.
 
 ---
 

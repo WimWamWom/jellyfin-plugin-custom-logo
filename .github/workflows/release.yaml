@@ -35,7 +35,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: 10.0.x
 
       - name: Resolve version
         id: version
@@ -167,7 +167,7 @@ jobs:
           entry = {
               'version': version,
               'changelog': changelog,
-              'targetAbi': '10.11.0.0',
+              'targetAbi': '12.0.0.0',
               'sourceUrl': source,
               'checksum': os.environ['CHECKSUM'],
               'timestamp': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),

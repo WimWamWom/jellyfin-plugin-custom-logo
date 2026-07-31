@@ -25,7 +25,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: 10.0.x
 
       - name: Restore
         run: dotnet restore Jellyfin.Plugin.CustomLogo.sln
@@ -37,5 +37,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Jellyfin.Plugin.CustomLogo
-          path: Jellyfin.Plugin.CustomLogo/bin/Release/net9.0/Jellyfin.Plugin.CustomLogo.dll
+          path: Jellyfin.Plugin.CustomLogo/bin/Release/net10.0/Jellyfin.Plugin.CustomLogo.dll
           if-no-files-found: error

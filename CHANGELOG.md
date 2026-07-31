@@ -7,6 +7,24 @@ Changes to the plugin, as users experience them. Heading format: `## 1.0.0.3`, m
 > details (workflows, packaging, docs) belong in the commit history, not here: these sections are
 > shown to users inside Jellyfin.
 
+## 1.0.0.6
+
+**Added**
+
+- Header logo and text are now also replaced in the default ("Modern") layout's toolbar. Previously
+  only the TV layout and the legacy desktop/mobile layouts were covered, because the classic header
+  they use is present but hidden behind the new default layout.
+
+**Changed**
+
+- Now targets Jellyfin 12.0 (`net10.0`, plugin ABI `12.0.0.0`). This is a hard cutover: this version
+  no longer loads on Jellyfin 10.11.x. If you are still on 10.11, stay on 1.0.0.5.
+
+**Fixed**
+
+- The logo and favicon preview images on the configuration page loaded a broken-image icon instead of
+  the upload, because Jellyfin 12 rejects the query parameter they used to authenticate.
+
 ## 1.0.0.5
 
 **Changed**

@@ -43,8 +43,8 @@ Three consequences worth knowing:
   holds the branded copy in memory only.
 - **No third-party plugin is required.** The community [File Transformation][filetransformation]
   plugin solves a similar problem, but it is a separate install and registers callbacks by
-  reflection. Jellyfin 10.11 has no native web-file transformation API of its own. `IStartupFilter`
-  is a stock ASP.NET Core extension point that happens to be reachable from a Jellyfin plugin.
+  reflection. Jellyfin has no native web-file transformation API of its own. `IStartupFilter` is a
+  stock ASP.NET Core extension point that happens to be reachable from a Jellyfin plugin.
 - **Uploads are inlined.** Uploaded images are embedded as `data:` URIs rather than served from a
   plugin endpoint. That removes an extra HTTP round trip, which matters here: an image still being
   fetched is an image not yet painted.
@@ -197,14 +197,16 @@ rest of the dashboard.
 
 ## Compatibility
 
-Built against the **Jellyfin 10.11** plugin ABI (`targetAbi 10.11.0.0`, .NET 9). The project
-references `Jellyfin.Controller` / `Jellyfin.Model` 10.11.0, the lowest 10.11 patch, so the
-assembly stays loadable across the whole 10.11.x line.
+Built against the **Jellyfin 12.0** plugin ABI (`targetAbi 12.0.0.0`, .NET 10). The project
+references `Jellyfin.Controller` / `Jellyfin.Model` 12.0.0. This is a hard cutover: a build against
+12.0.0 does not load on a 10.11.x server, because the referenced assemblies are versioned 12.0.0.0
+there and the plugin loader falls back to whatever the server itself ships for these two packages.
+10.11.x users should stay on the last `1.0.0.x` release; it remains available from the manifest and
+from GitHub releases.
 
-### Jellyfin 12.0.0 (in development)
-
-Checked against `jellyfin/master` and `jellyfin-web/master`. **Everything this plugin depends on is
-still there**, so porting is a retarget rather than a rewrite:
+Checked against three Jellyfin 12.0.0 release candidates (server and `jellyfin-web`, all three
+byte-identical for everything this plugin touches) plus `jellyfin/master` and `jellyfin-web/master`
+at the time of porting.
 
 | What the plugin needs | State in 12.0.0 |
 | --- | --- |
@@ -213,36 +215,52 @@ still there**, so porting is a retarget rather than a rewrite:
 | `/web` served by `UseStaticFiles` over a `PhysicalFileProvider` | Unchanged, including the `index.html` no-cache handling |
 | `index.html` carrying `.splashLogo` and the icon links | Unchanged |
 | `libraryMenu.js` applying both header logo classes | Unchanged, so the two-class selector still wins |
-| `.splashLogo`, `.pageTitleWithLogo`, `.adminDrawerLogo` | Unchanged |
+| `.splashLogo`, `.pageTitleWithLogo`, `.adminDrawerLogo` | Unchanged CSS, see caveats below |
 | `PluginPageInfo.EnableInMainMenu` | Unchanged |
 | `Policies.RequiresElevation` | Unchanged |
-
-What has to change:
-
-- **Target framework `net10.0`**, since 12.0.0 moved up from .NET 9, plus package references to
-  `Jellyfin.Controller` / `Jellyfin.Model` 12.0.0.
-- **`targetAbi` to `12.0.0.0`.** Jellyfin enforces the plugin ABI per release, so a build against
-  10.11 will not load on 12 and vice versa. That means a separate version line, and in practice a
-  separate manifest, per server generation.
-- The header logo rule moved out of the per-theme stylesheets into `src/themes/_base/_theme.scss`. It
-  is still a single-class selector without `!important`, so the plugin's rules still win, but it is
-  worth re-checking once the web client rewrite settles.
+| Preview image `?api_key=` query parameter | **Rejected.** A new `EnableLegacyAuthorization` server setting defaults to off and a startup migration forces it off on upgrade; only `?ApiKey=` (and the `Authorization` header) is accepted unconditionally. Fixed by switching the config page's preview request to `ApiKey`. |
 
 There is still no native web-file transformation API in 12.0.0, so `IStartupFilter` remains the way
 to do this.
+
+### The header moved behind a hidden legacy view
+
+`jellyfin-web` 12 ships a new default UI ("Modern" layout, React/MUI-based). It still renders the
+classic `.pageTitle`/`.pageTitleWithLogo`/`.pageTitleWithDefaultLogo` header and `libraryMenu.js`
+still applies both classes exactly as before, so the plugin's existing selector still wins on CSS
+specificity — the catch is that the element carrying those classes sits inside a container the
+client itself sets to `display:none` whenever the Modern layout is active, which is the default, and
+on every `/dashboard` route. It stays visible only in the TV layout, or when a user has explicitly
+switched to the "Desktop (Legacy)"/"Mobile (Legacy)" layout in their display preferences.
+
+In its place, Modern renders a plain MUI `Button` with a plain `<img>` as its `startIcon` and the
+server name as its own text, carrying no Jellyfin-specific class. The plugin now also targets that
+button through MUI's own stable global class names (`.MuiButton-startIcon img` for the logo, and
+`.MuiButton-root:has(.MuiButton-startIcon img)` to blank the button's native text before supplying a
+replacement via `::after`, same as the legacy header). This is verified collision-free: across the
+whole web client, the server logo is the only place that passes a literal `<img>` as a button's start
+icon, everywhere else passes an SVG icon component. It relies on `:has()`, supported by every
+evergreen browser since 2023; on anything older the two rules simply do not match and the native
+button is left alone.
+
+One accepted limitation: the button's text is a bare DOM text node next to the icon with no element
+around it to select, so hiding it (`color:transparent`) cannot also collapse the space it occupies
+without collapsing the ambient font-size the icon's own sizing depends on. A long configured server
+name therefore leaves a gap before the replacement header text in the Modern layout. The classic
+header does not have this limitation.
 
 Released builds are compiled only against stable APIs. Nothing here depends on pre-release Jellyfin
 code.
 
 ## Building
 
-Requires the [.NET 9 SDK][dotnet].
+Requires the [.NET 10 SDK][dotnet].
 
 ```bash
 dotnet build Jellyfin.Plugin.CustomLogo.sln --configuration Release
 ```
 
-The plugin assembly lands in `Jellyfin.Plugin.CustomLogo/bin/Release/net9.0/`. Copy
+The plugin assembly lands in `Jellyfin.Plugin.CustomLogo/bin/Release/net10.0/`. Copy
 `Jellyfin.Plugin.CustomLogo.dll` into a folder under your server's `plugins/` directory and restart.
 
 Only `Jellyfin.Plugin.CustomLogo.dll` ships in the release zip: the Jellyfin and ASP.NET Core
