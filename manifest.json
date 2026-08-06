@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/WimWamWom/jellyfin-plugin-custom-logo/main/static/logo.png",
     "versions": [
       {
+        "version": "1.0.0.7",
+        "changelog": "**Changed**\n\n- A fresh install now starts with the appearance fields empty, so logo height, text colour, text\n  height and text weight are all Jellyfin's own until you set them. Previously it arrived with\n  `2em` / `#fff` / `1.8em` / `400` filled in, which quietly restyled the header the moment a logo was\n  configured. Existing installations keep the values they have saved; clear a field to hand that\n  detail back.\n- With no text colour configured, the header text in the default (\"Modern\") layout now follows the\n  web client's own colour instead of being forced to white, which was hard to read on light themes.\n\n**Fixed**\n\n- In the default (\"Modern\") layout, the header text now sits directly next to the logo. It was\n  pushed to the right by a gap as wide as the server name, because the button's own text was only\n  made invisible and still took up its space.",
+        "targetAbi": "12.0.0.0",
+        "sourceUrl": "https://github.com/WimWamWom/jellyfin-plugin-custom-logo/releases/download/v1.0.0.7/custom-logo_1.0.0.7.zip",
+        "checksum": "6930b66b0b33d9a3e3e46f7b6a981a97",
+        "timestamp": "2026-08-06T07:54:05Z"
+      },
+      {
         "version": "1.0.0.6",
         "changelog": "**Added**\n\n- Header logo and text are now also replaced in the default (\"Modern\") layout's toolbar. Previously\n  only the TV layout and the legacy desktop/mobile layouts were covered, because the classic header\n  they use is present but hidden behind the new default layout.\n\n**Changed**\n\n- Now targets Jellyfin 12.0 (`net10.0`, plugin ABI `12.0.0.0`). This is a hard cutover: this version\n  no longer loads on Jellyfin 10.11.x. If you are still on 10.11, stay on 1.0.0.5.\n\n**Fixed**\n\n- The logo and favicon preview images on the configuration page loaded a broken-image icon instead of\n  the upload, because Jellyfin 12 rejects the query parameter they used to authenticate.",
         "targetAbi": "12.0.0.0",
