@@ -67,15 +67,18 @@ public class PluginConfiguration : BasePluginConfiguration
         UploadedFaviconContentType = string.Empty;
         UploadedFaviconFileName = string.Empty;
 
-        // Left empty on purpose: with no logo and no header text configured, the plugin injects
-        // nothing at all, so a fresh install has no visible effect until it is set up.
+        // All left empty on purpose. With no logo and no header text configured, the plugin injects
+        // nothing at all, so a fresh install has no visible effect until it is set up. The appearance
+        // fields stay empty for the same reason: an empty field hands that detail back to Jellyfin,
+        // so setting up a logo changes the logo and nothing else. Height, colour and weight are the
+        // web client's own until the administrator decides otherwise.
         HeaderText = string.Empty;
         ShowHeaderText = true;
         HideHeaderTextOnMobile = true;
-        HeaderLogoSize = "2em";
-        HeaderTextColor = "#fff";
-        HeaderTextFontSize = "1.8em";
-        HeaderTextFontWeight = "400";
+        HeaderLogoSize = string.Empty;
+        HeaderTextColor = string.Empty;
+        HeaderTextFontSize = string.Empty;
+        HeaderTextFontWeight = string.Empty;
     }
 
     /// <summary>

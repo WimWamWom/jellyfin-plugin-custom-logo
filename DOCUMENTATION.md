@@ -138,6 +138,12 @@ set: the header box is `width: auto` and the text is `white-space: nowrap`, so i
 `--customlogo-text-offset` defaults to the logo height, which suits roughly square logos. A wide
 banner logo is drawn wider than it is tall, so increase this until the text clears it.
 
+The default ("Modern") layout's header reads `--customlogo-modern-text-size` instead of
+`--customlogo-text-size`, because its text sits in a box whose font size the plugin has to zero; see
+[The header moved behind a hidden legacy view](#the-header-moved-behind-a-hidden-legacy-view). The
+plugin keeps the two in step, so override both if you set the text height by hand, in `rem` rather
+than `em` for the modern one.
+
 If you previously replaced the logos with a hand-written CSS block, delete the logo rules from it;
 otherwise the two fight over the same selectors. Keep any unrelated custom CSS as it is.
 
@@ -243,18 +249,34 @@ switched to the "Desktop (Legacy)"/"Mobile (Legacy)" layout in their display pre
 In its place, Modern renders a plain MUI `Button` with a plain `<img>` as its `startIcon` and the
 server name as its own text, carrying no Jellyfin-specific class. The plugin now also targets that
 button through MUI's own stable global class names (`.MuiButton-startIcon img` for the logo, and
-`.MuiButton-root:has(.MuiButton-startIcon img)` to blank the button's native text before supplying a
-replacement via `::after`, same as the legacy header). This is verified collision-free: across the
+`.MuiButton-root:has(.MuiButton-startIcon img)` to collapse the button's native text before supplying
+a replacement via `::after`, same as the legacy header). This is verified collision-free: across the
 whole web client, the server logo is the only place that passes a literal `<img>` as a button's start
 icon, everywhere else passes an SVG icon component. It relies on `:has()`, supported by every
 evergreen browser since 2023; on anything older the two rules simply do not match and the native
 button is left alone.
 
-One accepted limitation: the button's text is a bare DOM text node next to the icon with no element
-around it to select, so hiding it (`color:transparent`) cannot also collapse the space it occupies
-without collapsing the ambient font-size the icon's own sizing depends on. A long configured server
-name therefore leaves a gap before the replacement header text in the Modern layout. The classic
-header does not have this limitation.
+The button's text is a bare DOM text node next to the icon with no element around it to select. It is
+removed by zeroing the button's own `font-size`, which is the only way to take away its *width*:
+`color: transparent`, used until 1.0.0.6, hid the text but left the full run standing, so the
+`::after` replacement began behind an invisible block as wide as the server name and ended up far to
+the right of the logo. A zero font size collapses it outright, and the replacement text then sits
+directly beside the logo. Nothing is forced to a colour either, so an empty colour field leaves the
+header text in the web client's own colour rather than in a colour the plugin picked, which matters
+for the light themes a hard-coded `#fff` was nearly invisible against.
+
+Two things follow from the zeroed font-size, both handled in the same block:
+
+- The `::after` cannot use `em`, since it would resolve against the zeroed parent and render nothing.
+  The configured text height is emitted a second time as `--customlogo-modern-text-size`, with `em`
+  (and its percentage spelling) rewritten to `rem`; absolute and already root-relative lengths are
+  passed through. With no text height configured, the `::after` falls back to `0.9375rem`, MUI's own
+  size for a large text button, so the replacement matches what the button drew before.
+- The logo is not affected. MUI gives a large button's icon child an explicit `font-size: 22px`
+  (`commonIconStyles` in `@mui/material` 6.5.0, the version jellyfin-web pins), so the `max-height:
+  1.25em` that `ServerButton` sets inline on the `<img>` resolves against that, not against the
+  button. The plugin restates the same 22px on `.MuiButton-startIcon img` purely as a safety net: it
+  is the less specific of the two rules and never wins while MUI's own rule exists.
 
 Released builds through 1.0.0.5 were compiled only against stable Jellyfin APIs. This one is not:
 see the nuget.org note above. Nothing here depends on pre-release *behaviour*, though — every

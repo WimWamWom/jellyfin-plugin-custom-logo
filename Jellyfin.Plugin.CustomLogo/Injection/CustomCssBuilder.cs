@@ -1,3 +1,5 @@
+using System;
+using System.Globalization;
 using System.Text;
 using Jellyfin.Plugin.CustomLogo.Configuration;
 
@@ -44,6 +46,23 @@ internal static class CustomCssBuilder
     private const string ModernHeaderButtonSelector = ".MuiButton-root:has(.MuiButton-startIcon img)";
 
     /// <summary>
+    /// Size the modern header text falls back to when no text height is configured. The button is a
+    /// large MUI text button and <c>jellyfin-web</c> overrides nothing about its typography, so this
+    /// is MUI's own size for it. It has to be restated as an absolute length because the button's own
+    /// font size is zeroed, see <see cref="Build"/>.
+    /// </summary>
+    private const string ModernTextSize = "0.9375rem";
+
+    /// <summary>
+    /// Font size MUI gives the icon inside a large button. Restated only as a safety net: the logo
+    /// carries an em based inline <c>max-height</c>, so it must never inherit the zeroed font size of
+    /// the button. MUI's own rule for the icon is more specific than
+    /// <see cref="ModernHeaderIconSelector"/> and keeps winning while it exists, which leaves the
+    /// logo at exactly the size jellyfin-web draws it.
+    /// </summary>
+    private const string ModernIconFontSize = "22px";
+
+    /// <summary>
     /// Builds the stylesheet for the supplied configuration.
     /// </summary>
     /// <param name="config">The plugin configuration.</param>
@@ -85,7 +104,8 @@ internal static class CustomCssBuilder
 
             if (textSize is not null)
             {
-                sb.Append("--customlogo-text-size:").Append(textSize).Append(';');
+                sb.Append("--customlogo-text-size:").Append(textSize).Append(';')
+                  .Append("--customlogo-modern-text-size:").Append(ToRootRelativeLength(textSize)).Append(';');
             }
         }
 
@@ -172,21 +192,28 @@ internal static class CustomCssBuilder
             if (headerText)
             {
                 // The button's own text is a bare text node next to the icon, with no element around
-                // it to select. Making the whole button transparent hides that text without touching
-                // font-size, which the icon's own inline sizing (set by jellyfin-web) is relative to.
-                // The ::after content then supplies the replacement text with its own explicit colour,
-                // since it would otherwise inherit the transparent one. The original text still
-                // reserves its layout width, so a long configured server name leaves a gap before the
-                // replacement text; there is no CSS way to collapse a bare text node's width without
-                // also collapsing font-size, which the icon depends on.
-                sb.Append(ModernHeaderButtonSelector).Append("{color:transparent!important;}")
+                // it to select. Zeroing the button's font size both hides it and, unlike making it
+                // transparent, collapses it to no width. Width is the point: a transparent text node
+                // still reserves the full run, and the ::after replacement would start only behind
+                // it, leaving the header text stranded far to the right of the logo. Nothing here is
+                // forced to a colour of the plugin's choosing either, so with the colour field empty
+                // the text is drawn in the web client's own colour, whatever the active theme.
+                //
+                // The zero font size is inherited, so the size the ::after draws at has to be stated
+                // in a unit that does not resolve against it: an em value would compute to zero and
+                // render nothing at all. The icon is unaffected, since MUI gives it a font size of
+                // its own, and ModernIconFontSize backs that up.
+                sb.Append(ModernHeaderButtonSelector).Append("{font-size:0!important;}")
+                  .Append(ModernHeaderIconSelector).Append("{font-size:").Append(ModernIconFontSize).Append(";}")
                   .Append(ModernHeaderButtonSelector).Append("::after{")
                   .Append("content:var(--customlogo-header-text);")
-                  .Append("color:").Append(textColor ?? "#fff").Append(';');
+                  .Append("font-size:var(--customlogo-modern-text-size,").Append(ModernTextSize).Append(");")
+                  .Append("line-height:1;")
+                  .Append("white-space:nowrap;");
 
-                if (textSize is not null)
+                if (textColor is not null)
                 {
-                    sb.Append("font-size:var(--customlogo-text-size);");
+                    sb.Append("color:").Append(textColor).Append(';');
                 }
 
                 if (textWeight is not null)
@@ -309,6 +336,36 @@ internal static class CustomCssBuilder
     {
         var sanitized = SanitizeCssValue(value, fallback);
         return IsUnitlessNumber(sanitized) ? sanitized + "em" : sanitized;
+    }
+
+    /// <summary>
+    /// Restates a font relative length against the document root, so that it survives on an element
+    /// whose inherited font size is zero.
+    /// </summary>
+    /// <remarks>
+    /// The modern header collapses the button's native text by zeroing the button's font size, and
+    /// <c>em</c> resolves against exactly that font size: a configured height of <c>1.8em</c> would
+    /// compute to zero there and the header text would disappear. <c>em</c> and its percentage
+    /// spelling are therefore converted to <c>rem</c>, which is relative to the root instead. The two
+    /// differ only by the root font size against which the number is read, so a value keeps meaning
+    /// very nearly what it means in the classic header. Lengths that are already absolute or root
+    /// relative are handed through untouched.
+    /// </remarks>
+    /// <param name="value">A sanitized CSS length, as returned by <see cref="OptionalCssLength"/>.</param>
+    /// <returns>A length that does not depend on the inherited font size.</returns>
+    private static string ToRootRelativeLength(string value)
+    {
+        if (value.EndsWith('%'))
+        {
+            return double.TryParse(value[..^1], NumberStyles.Float, CultureInfo.InvariantCulture, out var percent)
+                ? (percent / 100).ToString(CultureInfo.InvariantCulture) + "rem"
+                : value;
+        }
+
+        var em = value.EndsWith("em", StringComparison.OrdinalIgnoreCase)
+            && !value.EndsWith("rem", StringComparison.OrdinalIgnoreCase);
+
+        return em ? value[..^2] + "rem" : value;
     }
 
     /// <summary>

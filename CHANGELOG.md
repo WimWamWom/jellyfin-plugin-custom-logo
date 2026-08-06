@@ -7,6 +7,24 @@ Changes to the plugin, as users experience them. Heading format: `## 1.0.0.3`, m
 > details (workflows, packaging, docs) belong in the commit history, not here: these sections are
 > shown to users inside Jellyfin.
 
+## 1.0.0.7
+
+**Changed**
+
+- A fresh install now starts with the appearance fields empty, so logo height, text colour, text
+  height and text weight are all Jellyfin's own until you set them. Previously it arrived with
+  `2em` / `#fff` / `1.8em` / `400` filled in, which quietly restyled the header the moment a logo was
+  configured. Existing installations keep the values they have saved; clear a field to hand that
+  detail back.
+- With no text colour configured, the header text in the default ("Modern") layout now follows the
+  web client's own colour instead of being forced to white, which was hard to read on light themes.
+
+**Fixed**
+
+- In the default ("Modern") layout, the header text now sits directly next to the logo. It was
+  pushed to the right by a gap as wide as the server name, because the button's own text was only
+  made invisible and still took up its space.
+
 ## 1.0.0.6
 
 **Added**
