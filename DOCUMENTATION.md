@@ -206,22 +206,24 @@ rest of the dashboard.
 Built against the **Jellyfin 12.0** plugin ABI (`targetAbi 12.0.0.0`, .NET 10). This is a hard
 cutover: a build against 12.0.0 does not load on a 10.11.x server, because the referenced
 assemblies are versioned 12.0.0.0 there and the plugin loader falls back to whatever the server
-itself ships for these two packages. 10.11.x users should stay on the last `1.0.0.x` release; it
-remains available from the manifest and from GitHub releases.
+itself ships for these two packages. 10.11.x users should stay on `1.0.0.5`, the last release built
+against 10.11; it remains available from the manifest and from GitHub releases.
 
-nuget.org has no plain `12.0.0` package for `Jellyfin.Controller` / `Jellyfin.Model` yet, only
-release candidates, so the project is pinned to `12.0.0-rcrc3`, the latest one at the time of
-writing. Re-pin to the plain `12.0.0` the moment nuget.org has one: a prerelease pin is a moving
-target, since an older RC package can be unlisted once a newer one, or the stable release, ships.
-The assembly's own reported ABI is unaffected either way — `AssemblyVersion("12.0.0")` is identical
-across every 12.0 candidate checked, prerelease package version and runtime ABI are unrelated
-numbers.
+`Jellyfin.Controller` / `Jellyfin.Model` are pinned to the stable **`12.0.0`** packages, published to
+nuget.org with the 12.0 release. Builds up to and including 1.0.0.7 were pinned to `12.0.0-rcrc3`
+instead, because no stable package existed yet; that pin is gone. The change is a build-hygiene one
+only, not a compatibility fix: package version and runtime ABI are unrelated numbers, and every 12.0
+package — `rcrc3` and stable alike — carries `AssemblyVersion("12.0.0")`, so binaries built against
+the release candidate load on the final release unchanged.
 
-Checked against three Jellyfin 12.0.0 release candidates (server and `jellyfin-web`, all three
-byte-identical for everything this plugin touches) plus `jellyfin/master` and `jellyfin-web/master`
-at the time of porting.
+Checked against the final **Jellyfin 12.0** release (server and `jellyfin-web`), plus the three
+release candidates it was originally ported against. Everything this plugin touches is unchanged
+between them: `ServerButton.tsx`, `libraryMenu.js`, `librarybrowser.scss` and `dashboard.scss` are
+byte-identical, `Startup.cs` and `ApiApplicationBuilderExtensions.cs` are byte-identical, and MUI is
+still pinned to 6.5.0. `MediaBrowser.Controller`'s public surface lost eight members over the same
+span (`ISessionManager` and `ILibraryManager` overloads), none of which this plugin calls.
 
-| What the plugin needs | State in 12.0.0 |
+| What the plugin needs | State in 12.0 |
 | --- | --- |
 | `IPluginServiceRegistrator` | Unchanged signature |
 | Plugin services registered during `ConfigureServices` | Unchanged (`Program.cs` calls `appHost.Init`), so the `IStartupFilter` still lands in the container ASP.NET Core reads |
@@ -278,10 +280,9 @@ Two things follow from the zeroed font-size, both handled in the same block:
   button. The plugin restates the same 22px on `.MuiButton-startIcon img` purely as a safety net: it
   is the less specific of the two rules and never wins while MUI's own rule exists.
 
-Released builds through 1.0.0.5 were compiled only against stable Jellyfin APIs. This one is not:
-see the nuget.org note above. Nothing here depends on pre-release *behaviour*, though — every
-finding in this section was checked against release candidates that turned out byte-identical for
-everything the plugin touches, not against a moving target.
+Every finding in this section was re-checked against the final 12.0 release and holds unchanged. The
+`.MuiButton-startIcon img` selector in particular is still collision-free: `ServerButton` remains the
+only place in the whole web client that passes a literal `<img>` as a button's start icon.
 
 ## Building
 

@@ -52,7 +52,8 @@ Freshly installed, the plugin does nothing until you give it a logo or header te
 
 ## Requirements
 
-Jellyfin **12.0.0** or later. 10.11.x users should stay on the last `1.0.0.x` release.
+Jellyfin **12.0** or later. 10.11.x users should stay on `1.0.0.5`, the last release built against
+10.11.
 
 ---
 

@@ -7,6 +7,13 @@ Changes to the plugin, as users experience them. Heading format: `## 1.0.0.3`, m
 > details (workflows, packaging, docs) belong in the commit history, not here: these sections are
 > shown to users inside Jellyfin.
 
+## 2.0.0.0
+
+**Changed**
+
+- Verified against the final Jellyfin 12.0 release. Nothing changed in the plugin itself; 1.0.0.7
+  already runs on it unmodified.
+
 ## 1.0.0.7
 
 **Changed**
