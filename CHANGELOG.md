@@ -17,6 +17,8 @@ Changes to the plugin, as users experience them. Heading format: `## 1.0.0.3`, m
   classic, TV and legacy layouts the first and last option look the same.
 - With **No text**, the logo takes the whole clickable header button. The gap the web client reserves
   between the logo and the server name goes away with the text instead of being left standing empty.
+  Requested by @ToTheXtreme64 in
+  [#1](https://github.com/WimWamWom/jellyfin-plugin-custom-logo/issues/1).
 
 **Changed**
 
