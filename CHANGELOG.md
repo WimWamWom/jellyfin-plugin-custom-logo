@@ -7,6 +7,19 @@ Changes to the plugin, as users experience them. Heading format: `## 1.0.0.3`, m
 > details (workflows, packaging, docs) belong in the commit history, not here: these sections are
 > shown to users inside Jellyfin.
 
+## 2.0.0.2
+
+**Fixed**
+
+- **Header logo height** now works in the default ("Modern") layout. It only ever sized the classic
+  header, so in the layout most people actually see, the field appeared to do nothing at all.
+- A logo that is wider than it is tall is no longer squeezed into a square there. The web client caps
+  its header icon at 1.25em in both directions, which suits Jellyfin's own square icon and left every
+  wider logo at a fraction of its proper height. That cap on the width is lifted, so the logo keeps
+  its shape at whatever height it is given, exactly as the classic header has always drawn it.
+  Both reported by @ToTheXtreme64 in
+  [#1](https://github.com/WimWamWom/jellyfin-plugin-custom-logo/issues/1).
+
 ## 2.0.0.1
 
 **Added**

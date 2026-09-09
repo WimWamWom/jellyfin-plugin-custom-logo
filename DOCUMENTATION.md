@@ -113,6 +113,13 @@ instead.
   before it applies the logo classes. `Default text` and `No text` therefore look identical there and
   differ only in the default ("Modern") layout, and in the TV and legacy layouts the header is the
   logo either way.
+- **Logo height across the two headers.** The classic header applies the height to its own box and
+  lets the width follow, via `background-size: auto 100%`. The modern header's logo is an `<img>`
+  that `ServerButton` caps inline at `max-height`/`max-width: 1.25em`, so the plugin overrides both:
+  the width cap is lifted whenever a logo is set, and the configured height is applied as an
+  important `max-height`, which is what it takes to outrank an inline style. The height is restated
+  root-relative for that header, because `em` there resolves against the `22px` MUI gives the icon
+  rather than against the header, and the same number would otherwise mean two different sizes.
 - **Header text on mobile.** Below `50em` the text is hidden by default and the header collapses to
   just the logo, matching Jellyfin's own narrow layout. This covers the default text as well as your
   own, so with a logo configured the server name goes too. `No text` ignores the toggle, having

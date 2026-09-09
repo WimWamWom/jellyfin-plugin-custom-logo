@@ -62,11 +62,11 @@ internal static class CustomCssBuilder
     private const string ModernTextSize = "0.9375rem";
 
     /// <summary>
-    /// Font size MUI gives the icon inside a large button. Restated only as a safety net: the logo
-    /// carries an em based inline <c>max-height</c>, so it must never inherit the zeroed font size of
-    /// the button. MUI's own rule for the icon is more specific than
-    /// <see cref="ModernHeaderIconSelector"/> and keeps winning while it exists, which leaves the
-    /// logo at exactly the size jellyfin-web draws it.
+    /// Font size MUI gives the icon inside a large button. Restated only as a safety net: the icon's
+    /// height is capped in em, so it must never inherit the zeroed font size of the button. MUI's own
+    /// rule for the icon is more specific than <see cref="ModernHeaderIconSelector"/> and keeps
+    /// winning while it exists. It is also what an em would resolve against here, which is why a
+    /// configured logo height is restated root-relative instead of being passed through.
     /// </summary>
     private const string ModernIconFontSize = "22px";
 
@@ -140,7 +140,8 @@ internal static class CustomCssBuilder
 
         if (logoSize is not null)
         {
-            sb.Append("--customlogo-size:").Append(logoSize).Append(';');
+            sb.Append("--customlogo-size:").Append(logoSize).Append(';')
+              .Append("--customlogo-modern-size:").Append(ToRootRelativeLength(logoSize)).Append(';');
         }
 
         sb.Append('}');
@@ -220,7 +221,28 @@ internal static class CustomCssBuilder
             if (hasLogo)
             {
                 sb.Append(".layout-tv .pageTitleWithDefaultLogo{background-image:var(--customlogo-image)!important;}")
-                  .Append(ModernHeaderIconSelector).Append("{content:var(--customlogo-image)!important;}");
+                  .Append(ModernHeaderIconSelector).Append("{content:var(--customlogo-image)!important;")
+
+                  // ServerButton caps the icon inline at max-height and max-width 1.25em, a square
+                  // sized for Jellyfin's own square icon. Any wider logo is squeezed into that square
+                  // and comes out a fraction of its height, which is what made replacements look tiny
+                  // here while the classic header drew them correctly. Releasing the width cap is
+                  // exactly what that header has always done with background-size:auto 100%: the logo
+                  // keeps its aspect ratio and follows whatever height applies. It takes !important,
+                  // since the cap is an inline style and only an important author rule outranks one.
+                  .Append("max-width:none!important;");
+
+                if (logoSize is not null)
+                {
+                    // Without this the height field did nothing at all in the default ("Modern")
+                    // layout: it only ever sized the classic header's box. Stated root-relative for
+                    // the same reason as the text height, since em here resolves against the 22px MUI
+                    // gives the icon rather than against the header, and one number would otherwise
+                    // mean two different sizes in the two layouts.
+                    sb.Append("max-height:var(--customlogo-modern-size)!important;");
+                }
+
+                sb.Append('}');
             }
 
             if (customText || noText)
