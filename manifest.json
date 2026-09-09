@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/WimWamWom/jellyfin-plugin-custom-logo/main/static/logo.png",
     "versions": [
       {
+        "version": "2.0.0.2",
+        "changelog": "**Fixed**\n\n- **Header logo height** now works in the default (\"Modern\") layout. It only ever sized the classic\n  header, so in the layout most people actually see, the field appeared to do nothing at all.\n- A logo that is wider than it is tall is no longer squeezed into a square there. The web client caps\n  its header icon at 1.25em in both directions, which suits Jellyfin's own square icon and left every\n  wider logo at a fraction of its proper height. That cap on the width is lifted, so the logo keeps\n  its shape at whatever height it is given, exactly as the classic header has always drawn it.\n  Both reported by @ToTheXtreme64 in\n  [#1](https://github.com/WimWamWom/jellyfin-plugin-custom-logo/issues/1).",
+        "targetAbi": "12.0.0.0",
+        "sourceUrl": "https://github.com/WimWamWom/jellyfin-plugin-custom-logo/releases/download/v2.0.0.2/custom-logo_2.0.0.2.zip",
+        "checksum": "193f52bde55a504036fbfda828dfbd4f",
+        "timestamp": "2026-09-09T12:47:04Z"
+      },
+      {
         "version": "2.0.0.1",
         "changelog": "**Added**\n\n- The header text is now a choice of three: **Default text** keeps whatever Jellyfin puts next to the\n  logo, **My custom text** draws your own, and **No text** removes it altogether. Only the default\n  (\"Modern\") layout has any text of its own there \u2014 the server name on the header button \u2014 so in the\n  classic, TV and legacy layouts the first and last option look the same.\n- With **No text**, the logo takes the whole clickable header button. The gap the web client reserves\n  between the logo and the server name goes away with the text instead of being left standing empty.\n  Requested by @ToTheXtreme64 in\n  [#1](https://github.com/WimWamWom/jellyfin-plugin-custom-logo/issues/1).\n\n**Changed**\n\n- \"Hide the header text on narrow screens\" now applies to the default text as well as to your own.\n  If you have a logo configured and no custom text, the server name is hidden below 50em from now on,\n  the same way your own text always was. Untick the box to keep it at every width.\n- The \"Show the header text next to the logo\" tick box is gone, replaced by the choice above. It only\n  ever suppressed your own text, never Jellyfin's, so there was no way to ask for an empty header.\n- Existing configurations keep rendering exactly as they do today. A header text that was configured\n  and shown becomes **My custom text**; everything else becomes **Default text**, including an\n  unticked box, which never emptied the header in the first place.",
         "targetAbi": "12.0.0.0",
