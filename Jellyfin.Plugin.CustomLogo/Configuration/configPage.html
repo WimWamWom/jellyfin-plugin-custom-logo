@@ -125,28 +125,40 @@
                 <div class="verticalSection">
                     <h2 class="sectionTitle">Header text</h2>
 
-                    <div class="inputContainer">
+                    <div class="selectContainer">
+                        <label class="selectLabel" for="HeaderTextMode">What appears next to the logo</label>
+                        <select is="emby-select" id="HeaderTextMode" name="HeaderTextMode" class="emby-select-withcolor emby-select">
+                            <option value="Default">Default text</option>
+                            <option value="Custom">My custom text</option>
+                            <option value="None">No text</option>
+                        </select>
+                        <div class="fieldDescription">
+                            "Default text" leaves whatever Jellyfin draws there, which is the server name in
+                            the default ("Modern") layout and nothing at all in the classic header, because
+                            that one has no text of its own. "No text" takes it away, and the logo then has
+                            the whole clickable header button to itself.
+                        </div>
+                    </div>
+
+                    <div class="inputContainer" id="HeaderTextContainer">
                         <label class="inputLabel inputLabelUnfocused" for="HeaderText">Header text</label>
                         <input id="HeaderText" name="HeaderText" type="text" is="emby-input" />
                         <div class="fieldDescription">
                             Shown next to the header logo. The browser tab title is not affected by this, that
                             one comes from <b>Dashboard &rarr; General &rarr; Server name</b>.
-                            If left empty, no text is added and the header stays as Jellyfin renders it.
+                            If left empty, this behaves like "Default text".
                         </div>
                     </div>
 
-                    <div class="checkboxContainer">
-                        <label class="emby-checkbox-label">
-                            <input id="ShowHeaderText" name="ShowHeaderText" type="checkbox" is="emby-checkbox" />
-                            <span>Show the header text next to the logo</span>
-                        </label>
-                    </div>
-
-                    <div class="checkboxContainer">
+                    <div class="checkboxContainer checkboxContainer-withDescription" id="HideHeaderTextOnMobileContainer">
                         <label class="emby-checkbox-label">
                             <input id="HideHeaderTextOnMobile" name="HideHeaderTextOnMobile" type="checkbox" is="emby-checkbox" />
                             <span>Hide the header text on narrow screens</span>
                         </label>
+                        <div class="fieldDescription checkboxFieldDescription">
+                            Below 50em the header collapses to just the logo, matching Jellyfin's own narrow
+                            layout. Applies to your own text and to the default text alike.
+                        </div>
                     </div>
                 </div>
 
@@ -166,8 +178,8 @@
                         <label class="inputLabel inputLabelUnfocused" for="HeaderTextColor">Header text colour</label>
                         <input id="HeaderTextColor" name="HeaderTextColor" type="text" is="emby-input" />
                         <div class="fieldDescription">
-                            A CSS colour, for example <code>#fff</code>. If left empty, the default Jellyfin
-                            colour is used.
+                            A CSS colour, for example <code>#fff</code>. Only applies to your own header
+                            text. If left empty, the default Jellyfin colour is used.
                         </div>
                     </div>
 
@@ -177,7 +189,8 @@
                         <div class="fieldDescription">
                             A CSS length, for example <code>1.8em</code>. A plain number is treated as
                             <code>em</code>. Set independently of the logo height; the width follows the text
-                            automatically. If left empty, the default Jellyfin size is used.
+                            automatically. Only applies to your own header text. If left empty, the default
+                            Jellyfin size is used.
                         </div>
                     </div>
 
@@ -185,8 +198,9 @@
                         <label class="inputLabel inputLabelUnfocused" for="HeaderTextFontWeight">Header text weight</label>
                         <input id="HeaderTextFontWeight" name="HeaderTextFontWeight" type="text" is="emby-input" />
                         <div class="fieldDescription">
-                            A CSS font weight. <code>400</code> is normal, <code>600</code> semi-bold.
-                            If left empty, the default Jellyfin weight is used.
+                            A CSS font weight. <code>400</code> is normal, <code>600</code> semi-bold. Only
+                            applies to your own header text. If left empty, the default Jellyfin weight is
+                            used.
                         </div>
                     </div>
                 </div>
@@ -275,6 +289,10 @@
             function updateVisibility() {
                 el('SpecificTargets').style.display = el('Mode').value === 'Specific' ? '' : 'none';
 
+                var textMode = el('HeaderTextMode').value;
+                el('HeaderTextContainer').style.display = textMode === 'Custom' ? '' : 'none';
+                el('HideHeaderTextOnMobileContainer').style.display = textMode === 'None' ? 'none' : '';
+
                 var logoUpload = el('LogoSource').value === 'Upload';
                 el('LogoUrlContainer').style.display = logoUpload ? 'none' : '';
                 el('LogoUploadContainer').style.display = logoUpload ? '' : 'none';
@@ -318,7 +336,9 @@
                 el('LogoUrl').value = config.LogoUrl || '';
 
                 el('HeaderText').value = config.HeaderText || '';
-                el('ShowHeaderText').checked = config.ShowHeaderText;
+                // Migrated server-side on read, so this is one of the three modes even when the
+                // stored configuration still only carries the flag this replaced.
+                el('HeaderTextMode').value = config.HeaderTextMode;
                 el('HideHeaderTextOnMobile').checked = config.HideHeaderTextOnMobile;
 
                 el('HeaderLogoSize').value = config.HeaderLogoSize || '';
@@ -397,6 +417,7 @@
             });
 
             page.querySelector('#Mode').addEventListener('change', updateVisibility);
+            page.querySelector('#HeaderTextMode').addEventListener('change', updateVisibility);
             page.querySelector('#LogoSource').addEventListener('change', updateVisibility);
             page.querySelector('#FaviconSource').addEventListener('change', updateVisibility);
             page.querySelector('#UseSeparateFavicon').addEventListener('change', updateVisibility);
@@ -429,8 +450,13 @@
                     config.LogoUrl = el('LogoUrl').value;
 
                     config.HeaderText = el('HeaderText').value;
-                    config.ShowHeaderText = el('ShowHeaderText').checked;
+                    config.HeaderTextMode = el('HeaderTextMode').value;
                     config.HideHeaderTextOnMobile = el('HideHeaderTextOnMobile').checked;
+
+                    // Retire the flag the mode replaced. While it is still set it wins over the
+                    // mode, so that an older configuration nobody has touched keeps rendering
+                    // exactly as it did before the mode existed.
+                    config.ShowHeaderText = null;
 
                     config.HeaderLogoSize = el('HeaderLogoSize').value;
                     config.HeaderTextColor = el('HeaderTextColor').value;

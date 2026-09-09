@@ -165,7 +165,7 @@ internal sealed partial class IndexHtmlTransformer
           .Append(config.FaviconSource.ToString()).Append('|')
           .Append(config.FaviconUrl).Append('|')
           .Append(config.HeaderText).Append('|')
-          .Append(config.ShowHeaderText).Append(config.HideHeaderTextOnMobile).Append('|')
+          .Append(config.HeaderTextMode.ToString()).Append(config.HideHeaderTextOnMobile).Append('|')
           .Append(config.HeaderLogoSize).Append('|')
           .Append(config.HeaderTextColor).Append('|')
           .Append(config.HeaderTextFontSize).Append('|')

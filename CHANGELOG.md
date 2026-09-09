@@ -7,6 +7,28 @@ Changes to the plugin, as users experience them. Heading format: `## 1.0.0.3`, m
 > details (workflows, packaging, docs) belong in the commit history, not here: these sections are
 > shown to users inside Jellyfin.
 
+## 2.0.0.1
+
+**Added**
+
+- The header text is now a choice of three: **Default text** keeps whatever Jellyfin puts next to the
+  logo, **My custom text** draws your own, and **No text** removes it altogether. Only the default
+  ("Modern") layout has any text of its own there — the server name on the header button — so in the
+  classic, TV and legacy layouts the first and last option look the same.
+- With **No text**, the logo takes the whole clickable header button. The gap the web client reserves
+  between the logo and the server name goes away with the text instead of being left standing empty.
+
+**Changed**
+
+- "Hide the header text on narrow screens" now applies to the default text as well as to your own.
+  If you have a logo configured and no custom text, the server name is hidden below 50em from now on,
+  the same way your own text always was. Untick the box to keep it at every width.
+- The "Show the header text next to the logo" tick box is gone, replaced by the choice above. It only
+  ever suppressed your own text, never Jellyfin's, so there was no way to ask for an empty header.
+- Existing configurations keep rendering exactly as they do today. A header text that was configured
+  and shown becomes **My custom text**; everything else becomes **Default text**, including an
+  unticked box, which never emptied the header in the first place.
+
 ## 2.0.0.0
 
 **Changed**

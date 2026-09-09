@@ -40,10 +40,34 @@ public enum ImageSourceKind
 }
 
 /// <summary>
+/// What is drawn next to the header logo.
+/// </summary>
+public enum HeaderTextKind
+{
+    /// <summary>
+    /// Leave whatever Jellyfin draws there. The default ("Modern") layout shows the server name;
+    /// the classic header has no text of its own, so there it means the logo stands alone.
+    /// </summary>
+    Default,
+
+    /// <summary>
+    /// Draw the text configured in <see cref="PluginConfiguration.HeaderText"/>.
+    /// </summary>
+    Custom,
+
+    /// <summary>
+    /// Draw no text at all, so the logo has the whole header button to itself.
+    /// </summary>
+    None
+}
+
+/// <summary>
 /// Plugin configuration.
 /// </summary>
 public class PluginConfiguration : BasePluginConfiguration
 {
+    private HeaderTextKind _headerTextMode;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="PluginConfiguration"/> class.
     /// </summary>
@@ -73,7 +97,8 @@ public class PluginConfiguration : BasePluginConfiguration
         // so setting up a logo changes the logo and nothing else. Height, colour and weight are the
         // web client's own until the administrator decides otherwise.
         HeaderText = string.Empty;
-        ShowHeaderText = true;
+        HeaderTextMode = HeaderTextKind.Default;
+        ShowHeaderText = null;
         HideHeaderTextOnMobile = true;
         HeaderLogoSize = string.Empty;
         HeaderTextColor = string.Empty;
@@ -157,9 +182,43 @@ public class PluginConfiguration : BasePluginConfiguration
     public string HeaderText { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether the header text is rendered at all.
+    /// Gets or sets what is drawn next to the header logo.
     /// </summary>
-    public bool ShowHeaderText { get; set; }
+    /// <remarks>
+    /// While <see cref="ShowHeaderText"/> still holds a value this reads back as the mode that
+    /// configuration already rendered as, so upgrading cannot change anyone's header. The stored
+    /// value takes over as soon as the configuration is saved once, which clears that flag.
+    /// </remarks>
+    public HeaderTextKind HeaderTextMode
+    {
+        get
+        {
+            if (ShowHeaderText is not bool legacy)
+            {
+                return _headerTextMode;
+            }
+
+            // Before the mode existed, the plugin only ever *added* text: unticking the box, or
+            // leaving the text empty, left the web client's own header alone rather than emptying
+            // it. Both therefore migrate to Default, not to None.
+            return legacy && !string.IsNullOrEmpty(HeaderText)
+                ? HeaderTextKind.Custom
+                : HeaderTextKind.Default;
+        }
+
+        set => _headerTextMode = value;
+    }
+
+    /// <summary>
+    /// Gets or sets the flag that <see cref="HeaderTextMode"/> replaced in 2.0.0.1, or <c>null</c>
+    /// in any configuration saved since.
+    /// </summary>
+    /// <remarks>
+    /// Kept only so an older configuration can still be read back faithfully; see
+    /// <see cref="HeaderTextMode"/>. The configuration page clears it on save, so it disappears
+    /// from the stored XML the first time the settings are touched.
+    /// </remarks>
+    public bool? ShowHeaderText { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether the header text is hidden on narrow (mobile) viewports.

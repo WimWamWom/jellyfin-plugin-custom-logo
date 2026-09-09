@@ -73,8 +73,9 @@ Open **Custom Logo** in the dashboard's left-hand navigation, or go through
 | Replacement mode | `All logos`, `Only the logos I select`, or `Nothing`. `Nothing` leaves the served page untouched without uninstalling the plugin. |
 | Individual logos | Splash, header, drawer and favicon toggles. Only consulted in `Only the logos I select` mode. |
 | Logo source | An external URL, or a file uploaded here (max 2 MB). |
-| Header text | Drawn next to the header logo. |
-| Appearance | Logo height, text height, text colour, text weight: all plain CSS values. Logo and text height are independent; the text's width always follows its content. |
+| Header text | `Default text`, `My custom text`, or `No text`, plus the text itself. `Default text` leaves whatever Jellyfin draws next to the logo; `No text` takes it away and gives the logo the whole header button. The text field is only read by `My custom text`, and an empty one behaves as `Default text`. |
+| Appearance | Logo height, text height, text colour, text weight: all plain CSS values. Logo and text height are independent; the text's width always follows its content. The three text fields only style your own header text. |
+| Favicon | Uses the main logo unless you tick "use a different image". |
 
 **Every field falls back to Jellyfin's own value when left empty.** The plugin then omits that
 declaration entirely rather than substituting a default of its own, so clearing a field is how you
@@ -82,7 +83,13 @@ hand a detail back to the web client. Clear the logo itself and the plugin injec
 
 Size fields accept a plain number and read it as `em`, since a unitless number is not a valid CSS
 length and the browser would otherwise discard the declaration.
-| Favicon | Uses the main logo unless you tick "use a different image". |
+
+A configuration written before 2.0.0.1 has no mode stored, only the `Show the header text next to
+the logo` tick box that preceded it. It is migrated as it is read, to whichever mode renders it
+exactly as it rendered before: `My custom text` where a text was configured and shown, `Default
+text` otherwise. Neither migrates to `No text`, because the old tick box never emptied the header
+— unticking it only stopped the plugin adding its own text, leaving the web client's in place. Saving
+the settings once retires the old flag for good.
 
 Settings apply on the next full page load. Reload the web client with <kbd>Ctrl</kbd>+<kbd>F5</kbd>
 (<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> on macOS).
@@ -101,8 +108,15 @@ instead.
 - **Header text placement.** The header logo and text only appear on pages without their own title.
   Jellyfin's `setTitle()` removes the logo classes and writes the page title instead, so on most
   subpages you see that title rather than your branding. That is stock behaviour.
+- **Only the modern header has text of its own.** It is the server name, drawn on the header button
+  next to the logo. The classic header has none at all: `libraryMenu.js` empties the title element
+  before it applies the logo classes. `Default text` and `No text` therefore look identical there and
+  differ only in the default ("Modern") layout, and in the TV and legacy layouts the header is the
+  logo either way.
 - **Header text on mobile.** Below `50em` the text is hidden by default and the header collapses to
-  just the logo, matching Jellyfin's own narrow layout.
+  just the logo, matching Jellyfin's own narrow layout. This covers the default text as well as your
+  own, so with a logo configured the server name goes too. `No text` ignores the toggle, having
+  already taken the text away at every width.
 
 ## Working alongside your own custom CSS
 

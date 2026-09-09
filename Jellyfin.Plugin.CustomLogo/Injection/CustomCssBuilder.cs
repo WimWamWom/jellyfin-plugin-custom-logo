@@ -46,6 +46,14 @@ internal static class CustomCssBuilder
     private const string ModernHeaderButtonSelector = ".MuiButton-root:has(.MuiButton-startIcon img)";
 
     /// <summary>
+    /// Selector for the wrapper MUI puts around the logo inside the header button. Used only to take
+    /// away the gap it reserves between the icon and the button's text, for the modes that leave no
+    /// text to reserve it for. Scoped through <see cref="ModernHeaderButtonSelector"/> so it cannot
+    /// reach the icon of any other button in the web client.
+    /// </summary>
+    private const string ModernHeaderIconWrapperSelector = ModernHeaderButtonSelector + " .MuiButton-startIcon";
+
+    /// <summary>
     /// Size the modern header text falls back to when no text height is configured. The button is a
     /// large MUI text button and <c>jellyfin-web</c> overrides nothing about its typography, so this
     /// is MUI's own size for it. It has to be restated as an absolute length because the button's own
@@ -74,10 +82,31 @@ internal static class CustomCssBuilder
         var splash = config.IsSplashLogoEnabled() && hasLogo;
         var header = config.IsHeaderLogoEnabled();
         var drawer = config.IsDrawerLogoEnabled() && hasLogo;
-        var headerText = header && config.ShowHeaderText && !string.IsNullOrEmpty(config.HeaderText);
+
+        // "My custom text" with the text field left empty has nothing to draw, so it means the same
+        // as "Default text": leave the header as the web client renders it.
+        var textMode = config.HeaderTextMode;
+        if (textMode == HeaderTextKind.Custom && string.IsNullOrEmpty(config.HeaderText))
+        {
+            textMode = HeaderTextKind.Default;
+        }
+
+        var customText = header && textMode == HeaderTextKind.Custom;
+        var noText = header && textMode == HeaderTextKind.None;
+
+        // Whether the plugin brands the header at all. "Default text" on its own is not branding: it
+        // is the instruction to leave the text alone, so it only ever rides along with a logo.
+        var brandedHeader = header && (hasLogo || customText || noText);
+
+        // Only the modern header has text of its own to take away, and "No text" already takes it
+        // away at every width, so the narrow-screen rule is for the other two modes. Hanging it off
+        // brandedHeader rather than off the toggle alone is what keeps a fresh install silent: the
+        // toggle is on by default and would otherwise start hiding the server name the moment the
+        // plugin is installed, before anything has been configured.
+        var hideTextOnMobile = brandedHeader && !noText && config.HideHeaderTextOnMobile;
 
         // Nothing to do: bail out so the middleware can serve the untouched file.
-        if (!splash && !drawer && !headerText && !(header && hasLogo))
+        if (!splash && !drawer && !brandedHeader)
         {
             return string.Empty;
         }
@@ -98,7 +127,7 @@ internal static class CustomCssBuilder
             sb.Append("--customlogo-image:url(\"").Append(EscapeCssString(logoUrl!)).Append("\");");
         }
 
-        if (headerText)
+        if (customText)
         {
             sb.Append("--customlogo-header-text:\"").Append(EscapeCssString(config.HeaderText)).Append("\";");
 
@@ -121,44 +150,49 @@ internal static class CustomCssBuilder
             sb.Append(".splashLogo{background-image:var(--customlogo-image)!important;}");
         }
 
-        if (header)
+        if (brandedHeader)
         {
-            // jellyfin-web always applies .pageTitleWithLogo together with .pageTitleWithDefaultLogo,
-            // so matching both gives two-class specificity. That deliberately beats the web client's
-            // own .pageTitle (height) and .pageTitleWithLogo (width) rules no matter which order the
-            // stylesheets end up in: with code splitting, bundle CSS can be inserted at runtime and
-            // therefore *after* this block. Relying on document order here previously left the box at
-            // the stock 1.7em, which clipped the logo top and bottom and squashed the header text.
-            sb.Append(HeaderSelector).Append('{');
-
-            if (hasLogo)
+            if (hasLogo || customText)
             {
-                // Only the image is forced: themes set background-image on .pageTitleWithDefaultLogo
-                // and are applied after page load, so that one declaration has to win outright.
-                // Sizing to 100% of the box means the logo can never overflow and get clipped.
-                sb.Append("background-image:var(--customlogo-image)!important;")
-                  .Append("background-size:auto 100%;")
-                  .Append("background-position:left center;")
-                  .Append("background-repeat:no-repeat;");
+                // jellyfin-web always applies .pageTitleWithLogo together with .pageTitleWithDefaultLogo,
+                // so matching both gives two-class specificity. That deliberately beats the web client's
+                // own .pageTitle (height) and .pageTitleWithLogo (width) rules no matter which order the
+                // stylesheets end up in: with code splitting, bundle CSS can be inserted at runtime and
+                // therefore *after* this block. Relying on document order here previously left the box at
+                // the stock 1.7em, which clipped the logo top and bottom and squashed the header text.
+                sb.Append(HeaderSelector).Append('{');
+
+                if (hasLogo)
+                {
+                    // Only the image is forced: themes set background-image on .pageTitleWithDefaultLogo
+                    // and are applied after page load, so that one declaration has to win outright.
+                    // Sizing to 100% of the box means the logo can never overflow and get clipped.
+                    sb.Append("background-image:var(--customlogo-image)!important;")
+                      .Append("background-size:auto 100%;")
+                      .Append("background-position:left center;")
+                      .Append("background-repeat:no-repeat;");
+                }
+
+                sb.Append("display:flex;")
+                  .Append("align-items:center;")
+                  .Append("width:auto;")
+                  .Append("overflow:visible;");
+
+                if (logoSize is not null)
+                {
+                    sb.Append("height:var(--customlogo-size);");
+                }
+
+                // Reserve space for the logo so the ::after text sits next to it rather than on top of
+                // it. Wide (banner style) logos can widen the gap via --customlogo-text-offset. Without
+                // a custom text the box is exactly the logo: the classic header draws no text of its
+                // own, since libraryMenu.js empties the element before applying the logo classes.
+                sb.Append("padding-left:")
+                  .Append(customText ? "calc(" + TextOffset + " + 0.5em)" : TextOffset)
+                  .Append(";}");
             }
 
-            sb.Append("display:flex;")
-              .Append("align-items:center;")
-              .Append("width:auto;")
-              .Append("overflow:visible;");
-
-            if (logoSize is not null)
-            {
-                sb.Append("height:var(--customlogo-size);");
-            }
-
-            // Reserve space for the logo so the ::after text sits next to it rather than on top of
-            // it. Wide (banner style) logos can widen the gap via --customlogo-text-offset.
-            sb.Append("padding-left:")
-              .Append(headerText ? "calc(" + TextOffset + " + 0.5em)" : TextOffset)
-              .Append(";}");
-
-            if (headerText)
+            if (customText)
             {
                 sb.Append(HeaderSelector).Append("::after{")
                   .Append("content:var(--customlogo-header-text);")
@@ -189,23 +223,38 @@ internal static class CustomCssBuilder
                   .Append(ModernHeaderIconSelector).Append("{content:var(--customlogo-image)!important;}");
             }
 
-            if (headerText)
+            if (customText || noText)
             {
-                // The button's own text is a bare text node next to the icon, with no element around
-                // it to select. Zeroing the button's font size both hides it and, unlike making it
-                // transparent, collapses it to no width. Width is the point: a transparent text node
-                // still reserves the full run, and the ::after replacement would start only behind
-                // it, leaving the header text stranded far to the right of the logo. Nothing here is
-                // forced to a colour of the plugin's choosing either, so with the colour field empty
-                // the text is drawn in the web client's own colour, whatever the active theme.
+                // The modern header button's own text is a bare text node next to the icon, with no
+                // element around it to select. Zeroing the button's font size both hides it and,
+                // unlike making it transparent, collapses it to no width. Width is the point: a
+                // transparent text node still reserves its full run, so a replacement drawn by
+                // ::after would begin only behind it, stranded far to the right of the logo, and
+                // "No text" would leave a hole exactly as wide as the server name.
                 //
-                // The zero font size is inherited, so the size the ::after draws at has to be stated
-                // in a unit that does not resolve against it: an em value would compute to zero and
-                // render nothing at all. The icon is unaffected, since MUI gives it a font size of
-                // its own, and ModernIconFontSize backs that up.
+                // The zero font size is inherited, so anything drawn in its place has to be sized in
+                // a unit that does not resolve against it; see the ::after block below. The icon is
+                // unaffected, since MUI gives it a font size of its own, and ModernIconFontSize backs
+                // that up.
                 sb.Append(ModernHeaderButtonSelector).Append("{font-size:0!important;}")
-                  .Append(ModernHeaderIconSelector).Append("{font-size:").Append(ModernIconFontSize).Append(";}")
-                  .Append(ModernHeaderButtonSelector).Append("::after{")
+                  .Append(ModernHeaderIconSelector).Append("{font-size:").Append(ModernIconFontSize).Append(";}");
+            }
+
+            if (noText)
+            {
+                // Nothing is drawn in the text's place, so the gap MUI reserves between the icon and
+                // that text goes as well. What is left is the logo and the button's own padding, so
+                // the whole click target is logo rather than logo plus an empty run beside it.
+                sb.Append(ModernHeaderIconWrapperSelector).Append("{margin-left:0;margin-right:0;}");
+            }
+
+            if (customText)
+            {
+                // Nothing here is forced to a colour of the plugin's choosing either, so with the
+                // colour field empty the text is drawn in the web client's own colour, whatever the
+                // active theme. An em value would resolve against the zeroed font size above and
+                // render nothing at all, which is why the size comes from --customlogo-modern-text-size.
+                sb.Append(ModernHeaderButtonSelector).Append("::after{")
                   .Append("content:var(--customlogo-header-text);")
                   .Append("font-size:var(--customlogo-modern-text-size,").Append(ModernTextSize).Append(");")
                   .Append("line-height:1;")
@@ -224,13 +273,28 @@ internal static class CustomCssBuilder
                 sb.Append('}');
             }
 
-            if (headerText && config.HideHeaderTextOnMobile)
+            if (hideTextOnMobile)
             {
-                // On narrow viewports drop the text and shrink the padding back to just the logo.
-                sb.Append("@media (max-width:50em){")
-                  .Append(HeaderSelector).Append("{padding-left:").Append(TextOffset).Append(";}")
-                  .Append(HeaderSelector).Append("::after{display:none;}")
-                  .Append(ModernHeaderButtonSelector).Append("::after{display:none;}")
+                // On narrow viewports drop the text and shrink the header back to just the logo,
+                // matching the web client's own narrow layout.
+                sb.Append("@media (max-width:50em){");
+
+                if (customText)
+                {
+                    sb.Append(HeaderSelector).Append("{padding-left:").Append(TextOffset).Append(";}")
+                      .Append(HeaderSelector).Append("::after{display:none;}")
+                      .Append(ModernHeaderButtonSelector).Append("::after{display:none;}");
+                }
+                else
+                {
+                    // Default text: there is no replacement of ours to hide, so the web client's own
+                    // text is collapsed here the same way "No text" collapses it at every width. The
+                    // classic header needs nothing, having no text of its own to begin with.
+                    sb.Append(ModernHeaderButtonSelector).Append("{font-size:0!important;}")
+                      .Append(ModernHeaderIconSelector).Append("{font-size:").Append(ModernIconFontSize).Append(";}");
+                }
+
+                sb.Append(ModernHeaderIconWrapperSelector).Append("{margin-left:0;margin-right:0;}")
                   .Append('}');
             }
         }
